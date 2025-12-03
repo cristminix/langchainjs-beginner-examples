@@ -14,7 +14,7 @@ Jawaban yang disediakan oleh chatpdf.com mengandung referensi ke sumbernya dalam
 
 Di balik layar, aplikasi generative AI ini menggunakan kekuatan Large Language Models (Model Bahasa Besar) untuk menghasilkan jawaban.
 
-Apa itu Large Language Model?
+## Apa itu Large Language Model?
 
 Large Language Model (disingkat LLM) adalah model pembelajaran mesin yang dapat memahami dan menghasilkan keluaran yang dapat dipahami manusia.
 
@@ -24,7 +24,7 @@ Contoh LLM termasuk GPT-4 oleh OpenAI, Gemini oleh Google, Llama oleh Meta, dan 
 
 Beberapa LLM bersifat tertutup (closed-source), seperti GPT dan Gemini, sementara beberapa bersifat terbuka (open-source) seperti Llama dan Mistral.
 
-Apa itu LangChain?
+## Apa itu LangChain?
 
 LangChain adalah framework open-source yang dirancang untuk menyederhanakan proses pengembangan aplikasi yang didukung LLM.
 
