@@ -1,6 +1,153 @@
-# BAB 7: BAHASA EKSPRESI LANCHAIN (LCEL)
+# BAB 6: TEMPLATE PROMPT LANGCHAIN
 
-Pada bab sebelumnya, kita memanggil metode prompt.format() di dalam metode llm.invoke() seperti yang ditunjukkan di bawah ini:
+Template prompt LangChain adalah kelas JavaScript yang digunakan untuk membuat prompt (atau instruksi) spesifik untuk dikirim ke Large Language Model.
+
+Dengan menggunakan template prompt, kita dapat mereproduksi instruksi yang sama sementara hanya memerlukan input minimal dari pengguna.
+
+Untuk menunjukkan contoh, misalkan Anda membuat aplikasi AI sederhana yang hanya memberikan informasi mata uang dari negara tertentu.
+
+Berdasarkan yang sudah kita ketahui, satu-satunya cara untuk melakukan ini adalah terus mengulang pertanyaan sambil mengubah negara seperti yang ditunjukkan di bawah:
+
+Pertanyaan Anda: ... Apa mata uang Malaysia?
+...
+Pertanyaan Anda: ... Apa mata uang India?
+...
+Pertanyaan Anda: ... Apa mata uang Kamboja?
+
+Alih-alih mengulang pertanyaan, Anda dapat membuat template untuk pertanyaan tersebut sebagai berikut:
+
+```javascript
+console.log("Info Mata Uang")
+console.log("=============")
+console.log("Anda dapat menanyakan mata uang negara mana pun di dunia")
+
+const { country } = await prompts({
+  type: "text",
+  name: "country",
+  message: "Masukkan Negara: ",
+  validate: (value) => (value ? true : "Negara tidak boleh kosong"),
+})
+
+const response = await llm.invoke(`Apa mata uang ${country}`)
+console.log(response.content)
+```
+
+Sekarang Anda hanya perlu memberikan nama negara untuk mendapatkan informasi mata uang.
+
+Meskipun Anda dapat menggunakan template string seperti di atas, LangChain merekomendasikan Anda menggunakan kelas template prompt untuk penggunaan ulang yang efektif. Mari saya tunjukkan caranya.
+
+Membuat Template Prompt
+
+Untuk membuat template prompt, Anda perlu mengimpor kelas `PromptTemplate` dari `@langchain/core/prompts` seperti di bawah:
+
+```javascript
+import { PromptTemplate } from "@langchain/core/prompts"
+```
+
+Langkah selanjutnya adalah membuat prompt itu sendiri.
+
+Anda dapat membuat variabel bernama `prompt`, lalu meneruskan panggilan ke konstruktor `PromptTemplate()` ke variabel tersebut:
+
+```javascript
+const prompt = new PromptTemplate({})
+```
+
+Saat memanggil konstruktor `PromptTemplate()`, Anda perlu memberikan dua argumen:
+
+1. `inputVariables` - Array dari nama-nama variabel yang digunakan dalam template
+2. `template` - String untuk template prompt itu sendiri
+
+Berikut contoh panggilan `PromptTemplate()` yang lengkap:
+
+```javascript
+const prompt = new PromptTemplate({
+  inputVariables: ["country"],
+  template: `Apa mata uang {country}? Jawab dalam satu paragraf pendek`,
+})
+```
+
+Sekarang Anda dapat menggunakan objek `prompt` saat memanggil metode `llm.invoke()`.
+
+Anda perlu memanggil metode `prompt.format()` dan meneruskan variabel yang ditentukan dalam parameter `inputVariables` seperti di bawah:
+
+```javascript
+const { country } = await prompts({
+  type: "text",
+  name: "country",
+  message: "Masukkan Negara: ",
+  validate: (value) => (value ? true : "Negara tidak boleh kosong"),
+})
+
+const response = await llm.invoke(await prompt.format({ country: country }))
+console.log(response.content)
+```
+
+Sekarang jalankan aplikasi dan tanyakan mata uang suatu negara tertentu.
+
+Berikut contoh menanyakan mata uang Spanyol:
+
+Gambar 22. Respons LLM
+
+![Image from PDF page 57](images/page_57_img_0_X14.jpg)
+
+Kelas `PromptTemplate` menyediakan struktur dari mana Anda dapat membangun prompt tertentu.
+
+Template Prompt Dengan Banyak Input
+
+Template prompt dapat menerima sebanyak mungkin input yang Anda butuhkan dalam string template.
+
+Misalnya, anggap Anda ingin mengontrol jumlah paragraf dan bahasa jawaban. Anda dapat menambahkan dua variabel lagi ke template prompt seperti ini:
+
+```javascript
+const prompt = new PromptTemplate({
+  inputVariables: ["country", "paragraph", "language"],
+  template: `
+    Anda adalah ahli mata uang.
+    Anda memberikan informasi tentang mata uang tertentu yang digunakan di suatu negara.
+
+    Jawab pertanyaan: Apa mata uang {country}?
+
+    Jawab dalam {paragraph} paragraf pendek dalam bahasa {language}
+  `,
+})
+```
+
+Karena kita memiliki tiga variabel input, kita perlu meminta input dari pengguna.
+
+Tepat di atas panggilan `prompts()`, buat array objek yang berisi detail input seperti yang ditunjukkan di bawah:
+
+```javascript
+const questions = [
+  {
+    type: "text",
+    name: "country",
+    message: "Negara apa?",
+    validate: (value) => (value ? true : "Negara tidak boleh kosong"),
+  },
+  {
+    type: "number",
+    name: "paragraph",
+    message: "Berapa paragraf (1 sampai 5)?",
+    validate: (value) => (value >= 1 && value <= 5 ? true : "Paragraf harus antara 1 dan 5"),
+  },
+  {
+    type: "text",
+    name: "language",
+    message: "Bahasa apa?",
+    validate: (value) => (value ? true : "Bahasa tidak boleh kosong"),
+  },
+]
+```
+
+Perhatikan bahwa input `paragraph` dibatasi antara 1 dan 5 untuk menghindari menghasilkan artikel panjang.
+
+Sekarang berikan variabel `questions` ke fungsi `prompts()`, lalu ekstrak input menggunakan sintaks destructuring assignment:
+
+```javascript
+const { country, paragraph, language } = await prompts(questions)
+```
+
+Sekarang Anda dapat meneruskan input ke metode `prompt.format()`:
 
 ```javascript
 const response = await llm.invoke(await prompt.format({ country, paragraph, language }))
@@ -8,264 +155,62 @@ const response = await llm.invoke(await prompt.format({ country, paragraph, lang
 console.log(response.content)
 ```
 
-Meskipun teknik ini berfungsi, LangChain sebenarnya menyediakan cara deklaratif untuk mengeksekusi objek prompt dan llm secara berurutan.
+Dan itu saja. Sekarang Anda dapat mencoba menjalankan aplikasi seperti yang ditunjukkan di bawah:
 
-Cara deklaratif ini disebut Bahasa Ekspresi LangChain (LCEL untuk singkatnya)
+Gambar 23. Hasil Banyak Input
 
-Dengan menggunakan LCEL, Anda dapat membungkus prompt dan objek llm dalam sebuah rantai sebagai berikut:
+![Image from PDF page 59](images/page_59_img_0_X20.jpg)
 
-```javascript
-const chain = prompt.pipe(llm)
-```
+Menggabungkan template prompt dengan `prompts`, Anda dapat membuat aplikasi informasi mata uang yang lebih canggih yang dapat menghasilkan jawaban tepat N paragraf panjangnya dan dalam bahasa pilihan Anda.
 
-LCEL ditandai dengan metode `pipe()`, yang dapat digunakan untuk membungkus komponen LangChain bersama-sama.
+Membatasi LLM Dari Menjawab Prompt Yang Tidak Diinginkan
 
-Komponen dalam LangChain termasuk prompt, LLM, rantai itu sendiri, dan parser. Kita akan mempelajari lebih lanjut tentang parser di bagian berikutnya.
+Template prompt juga dapat mencegah model Anda memberikan jawaban untuk pertanyaan aneh.
 
-Anda dapat memanggil metode `invoke()` dari objek rantai, dan meneruskan input yang diperlukan oleh prompt sebagai objek seperti ini:
+Misalnya, Anda dapat menanyakan LLM tentang mata uang Narnia, yang merupakan negara fiksi yang dibuat oleh penulis Inggris C.S. Lewis:
 
-```javascript
-const response = await chain.invoke({ country, paragraph, language })
+Gambar 24. LLM Menjawab Semua Jenis Pertanyaan
 
-console.log(response.content)
-```
+![Image from PDF page 59](images/page_59_img_1_X21.jpg)
 
-Objek rantai akan memformat prompt dan kemudian meneruskannya secara otomatis ke objek llm.
+Meskipun jawabannya sesuai, Anda mungkin tidak ingin memberikan informasi tentang negara fiksi atau tidak ada sejak awal.
 
-Objek respons sama seperti ketika Anda memanggil metode `llm.invoke()`: ini adalah objek pesan dengan jawaban yang disimpan di bawah properti content.
-
-## Rantai Berurutan
-
-Dengan menggunakan LCEL, Anda dapat membuat banyak rantai dan menjalankan prompt berikutnya setelah LLM merespons prompt sebelumnya.
-
-Metode menjalankan prompt berikutnya setelah prompt sebelumnya dijawab ini disebut rantai berurutan (sequential chain).
-
-Berdasarkan input dan output hasil, rantai berurutan dibagi menjadi 2 kategori:
-
-▪ Rantai Berurutan Sederhana (Simple Sequential Chain)
-
-▪ Rantai Berurutan Biasa (Regular Sequential Chain)
-
-Kita akan menjelajahi rantai berurutan biasa di bab berikutnya. Untuk sekarang, mari kita jelajahi rantai berurutan sederhana.
-
-## Rantai Berurutan Sederhana
-
-Rantai berurutan sederhana adalah di mana setiap langkah dalam rantai memiliki satu input/output. Output dari satu langkah akan menjadi input dari prompt berikutnya:
-
-Gambar 26. Ilustrasi Rantai Berurutan Sederhana
-
-Sebagai contoh, misalkan Anda ingin membuat aplikasi yang dapat menulis esai pendek.
-
-Anda akan memberikan topik, dan LLM pertama-tama akan memutuskan judul, dan kemudian melanjutkan dengan menulis esai untuk topik tersebut.
-
-![Gambar dari halaman PDF 64](images/page_64_img_0_X11.jpg)
-
-Untuk membuat aplikasi, Anda perlu membuat prompt untuk judul terlebih dahulu:
+Ubah parameter template prompt seperti yang ditunjukkan di bawah:
 
 ```javascript
-const titlePrompt = new PromptTemplate({
-  inputVariables: ["topic"],
+const prompt = new PromptTemplate({
+  inputVariables: ["country", "paragraph", "language"],
   template: `
-  Anda adalah seorang jurnalis ahli.
+    Anda adalah ahli mata uang.
+    Anda memberikan informasi tentang mata uang tertentu yang digunakan di suatu negara.
+    Hindari memberikan informasi tentang tempat fiksi.
+    Jika negara tersebut fiksi atau tidak ada, jawab: Saya tidak tahu.
 
-  Anda perlu membuat judul yang menarik untuk topik berikut:
-{topic}
+    Jawab pertanyaan: Apa mata uang {country}?
 
-  Jawab tepat dengan satu judul
+    Jawab dalam {paragraph} paragraf pendek dalam bahasa {language}
   `,
 })
 ```
 
-TitlePrompt di atas menerima satu variabel input: topik untuk judul yang akan dihasilkannya.
+Prompt di atas menginstruksikan LLM untuk tidak menjawab ketika ditanya tentang tempat fiksi.
 
-Selanjutnya, Anda perlu membuat prompt untuk esai sebagai berikut:
+Sekarang jika Anda bertanya lagi, LLM akan merespons sebagai berikut:
 
-```javascript
-const essayPrompt = new PromptTemplate({
-  inputVariables: ["title"],
-  template: `
-    Anda adalah penulis nonfiksi ahli.
+Gambar 25. LLM Tidak Menjawab
 
-    Anda perlu menulis esai pendek 350 kata untuk judul berikut:
+![Image from PDF page 60](images/page_60_img_0_X24.jpg)
 
-    {title}
+Seperti yang Anda lihat, LLM menolak untuk menjawab ketika ditanya tentang mata uang negara fiksi.
 
-    Pastikan esai menarik dan membuat pembaca merasa bersemangat.
-  `,
-})
-```
-
-EssayPrompt ini juga mengambil satu input: judul yang dihasilkan oleh titlePrompt yang kita buat sebelumnya.
-
-Sekarang Anda perlu membuat dua rantai, satu untuk setiap prompt:
-
-```javascript
-const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
-const secondChain = essayPrompt.pipe(llm)
-```
-
-FirstChain menggunakan kelas StringOutputParser untuk mengurai respons LLM sebagai string, jadi Anda perlu mengimpor parser dari LangChain:
-
-```javascript
-import { StringOutputParser } from "@langchain/core/output_parsers"
-```
-
-Dengan menggunakan string parser, respons LLM akan diubah dari objek menjadi nilai string tunggal, menghapus metadata yang disertakan dalam respons.
-
-Sekarang Anda dapat menggabungkan firstChain dan secondChain untuk membuat overallChain sebagai berikut:
-
-```javascript
-const overallChain = firstChain.pipe((firstChainResponse) => ({ title: firstChainResponse })).pipe(secondChain)
-```
-
-Perhatikan bahwa fungsi panah diteruskan dalam metode `pipe()` pertama. Fungsi ini memformat nilai yang dikembalikan oleh firstChain menjadi objek yang dapat diteruskan ke secondChain.
-
-Sekarang Anda memiliki overallChain, mari perbarui pertanyaan prompt untuk hanya menanyakan satu pertanyaan:
-
-```javascript
-console.log("Penulis Esai")
-
-const { topic } = await prompts([
-  {
-    type: "text",
-    name: "topic",
-    message: "Topik apa yang akan ditulis?",
-    validate: (value) => (value ? true : "Topik tidak boleh kosong"),
-  },
-])
-
-const response = await overallChain.invoke({ topic })
-console.log(response.content)
-```
-
-Dan Anda selesai. Jika Anda menjalankan aplikasi dan meminta `topic`, Anda akan mendapatkan respons yang mirip dengan ini:
-
-Gambar 27. Hasil Rantai Berurutan Sederhana
-
-Ada beberapa paragraf yang dipotong dari hasil di atas, tetapi Anda sudah dapat melihat bahwa prompt firstChain menghasilkan variabel judul yang digunakan oleh prompt secondChain.
-
-Dengan menggunakan rantai berurutan sederhana, Anda dapat memecah tugas kompleks menjadi urutan tugas yang lebih kecil, meningkatkan akurasi hasil LLM.
-
-## Menggunakan Beberapa LLM dalam Rantai Berurutan
-
-Anda juga dapat menetapkan LLM yang berbeda untuk setiap rantai yang Anda buat menggunakan LCEL.
-
-Kode contoh berikut menjalankan rantai pertama menggunakan Google Gemini, sementara rantai kedua menggunakan OpenAI GPT:
-
-```javascript
-const llm = new ChatOpenAI({
-  model: "gpt-4o",
-  apiKey: process.env.OPENAI_KEY,
-})
-
-const llm2 = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
-  apiKey: process.env.GOOGLE_GEMINI_KEY,
-})
-```
-
-![Gambar dari halaman PDF 67](images/page_67_img_0_X19.jpg)
-
-// Gunakan LLM yang berbeda untuk setiap rantai:
-
-```javascript
-const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
-const secondChain = essayPrompt.pipe(llm2)
-```
-
-Karena LCEL bersifat deklaratif, Anda dapat dengan mudah menukar komponen dalam rantai.
-
-## Debugging Rantai Berurutan
-
-Jika Anda ingin melihat proses rantai berurutan secara lebih detail, Anda dapat mengaktifkan mode debug saat membuat objek llm:
-
-```javascript
-const llm = new ChatOpenAI({
-  model: "gpt-4o",
-  apiKey: process.env.OPENAI_KEY,
-  debug: true,
-})
-```
-
-Ketika Anda menjalankan ulang aplikasi, Anda akan melihat output debug di terminal.
-
-Anda dapat melihat prompt yang dikirim oleh LangChain ke LLM dengan mencari log [llm/start] sebagai berikut:
-
-```
-[llm/start] [1:llm:ChatOpenAI] Memasuki run LLM dengan input: {
-// ...
-}
-```
-
-Untuk melihat output, Anda perlu mencari log [llm/end].
-
-Jika Anda mencari input rantai kedua, Anda akan melihat prompt yang didefinisikan sebagai berikut:
-
-```
-[llm/start] [1:llm:ChatOpenAI] Memasuki run LLM dengan input: {
-"messages": [
-[
-
-      {
-        "lc": 1,
-        "type": "constructor",
-        "id": [
-          "langchain_core",
-          "messages",
-          "HumanMessage"
-        ],
-        "kwargs": {
-          "content": "\n  Anda adalah penulis nonfiksi ahli.\n\n    Anda perlu menulis esai pendek 350 kata untuk judul berikut:\n\n    \"Living with Giants: Unraveling the Mysteries of Bears\"\n\n    Pastikan esai menarik dan membuat pembaca merasa bersemangat.\n  ",
-          "additional_kwargs": {},
-          "response_metadata": {}
-        }
-      }
-    ]
-
-}
-}
-```
-
-Input untuk prompt kedua diformat sebagai string karena kita menggunakan StrOutputParser() untuk rantai pertama.
-
-Jika Anda tidak mengurai output dari rantai pertama, maka prompt rantai kedua akan terlihat seperti ini:
-
-```
-"kwargs": {
-"content": "\n Anda adalah penulis nonfiksi ahli.\n\n Anda perlu menulis esai pendek 350 kata untuk judul berikut:\n\n [object Object]\n\n Pastikan esai menarik dan membuat pembaca merasa bersemangat.\n ",
-}
-```
-
-Perhatikan bahwa respons disematkan ke dalam string sebagai [object Object], jadi LLM mungkin salah memahami permintaan.
-
-Dalam kasus GPT, ia memberi tahu Anda dalam respons:
-
-Maaf, sepertinya ada kesalahan dalam judul yang diberikan.
-
-Mari asumsikan topik yang menarik untuk melanjutkan.
-
-Bagaimana dengan judul ini: "Keajaiban Komputasi Kuantum"?
-
-Dalam kasus saya, saya meminta GPT untuk menulis esai tentang beruang, dan ia secara acak menyarankan judul berdasarkan data pelatihannya.
-
-Untuk meminimalkan jenis respons yang tidak diinginkan ini, Anda perlu mengurai output dari rantai pertama menggunakan parser LangChain.
-
-Kita akan menggunakan parser lain di bab berikutnya.
+Dengan template prompt, kode lebih mudah dipelihara dan lebih bersih dibandingkan menggunakan template string berulang kali.
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder 07_LCEL dari kode sumber buku.
+Kode untuk bab ini tersedia di folder `06_Prompt_Template` dari kode sumber buku.
 
-Dalam bab ini, Anda telah mempelajari tentang Bahasa Ekspresi LangChain, yang dapat digunakan untuk menyusun komponen LangChain secara deklaratif.
+Penggunaan template prompt memungkinkan Anda merancang instruksi canggih untuk LLM sementara hanya memerlukan input minimal dari pengguna.
 
-Rantai hanyalah pembungkus untuk komponen LangChain ini:
+Semakin spesifik instruksi Anda, semakin akurat responsnya.
 
-1. Template prompt
-
-2. LLM yang akan digunakan
-
-3. Parser untuk memproses output dari LLM
-
-Komponen rantai dapat dipertukarkan, artinya Anda dapat menggunakan model GPT untuk prompt pertama, dan kemudian menggunakan model Gemini untuk prompt kedua, seperti yang ditunjukkan di atas.
-
-Dengan menggunakan LCEL, Anda dapat membuat alur kerja yang canggih dan berinteraksi dengan Model Bahasa Besar untuk menyelesaikan tugas yang kompleks.
+Anda bahkan dapat menginstruksikan LLM untuk menghindari menjawab prompt yang tidak diinginkan, seperti yang ditunjukkan di bagian terakhir.

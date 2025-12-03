@@ -1,149 +1,95 @@
-# BAB 11: INTERAKSI DENGAN DOKUMEN DI LANGCHAIN
+# BAB 10: AGEN AI DAN ALAT
 
-Salah satu kasus penggunaan AI yang paling menarik adalah fitur Chat With Document, yang memungkinkan pengguna berinteraksi dengan dokumen menggunakan kueri percakapan.
+Agen AI adalah perangkat lunak berpikir yang mampu menyelesaikan tugas melalui serangkaian tindakan. Ia menggunakan LLM sebagai mesin penalaran untuk merencanakan dan mengeksekusi tindakan.
 
-Dengan hanya mengajukan pertanyaan, pengguna dapat dengan cepat menemukan informasi relevan, merangkum konten, dan mendapatkan wawasan tanpa harus membaca dan menyortir halaman-halaman teks.
+Yang perlu Anda lakukan hanyalah memberi agen tugas tertentu. Agen akan memproses tugas, menentukan tindakan yang diperlukan untuk menyelesaikannya, lalu mengambil tindakan tersebut.
 
-Berikut ilustrasi proses yang diperlukan untuk membuat aplikasi Chat With Document:
+Agen juga dapat menggunakan alat untuk mengambil tindakan di dunia nyata, seperti mencari informasi spesifik di internet.
 
-Gambar 37. Proses Aplikasi Chat With Document
+Berikut ilustrasi untuk membantu Anda memahami konsep agen:
 
-Pertama-tama Anda perlu membagi satu dokumen menjadi potongan-potongan (chunks) agar dokumen dapat diproses dan diindeks secara efektif. Potongan tersebut kemudian diubah menjadi embedding vektor.
+Gambar 31. Ilustrasi Agen LLM
 
-Embedding vektor adalah larik angka yang merepresentasikan informasi berbagai jenis, termasuk teks, gambar, audio, dan lainnya, dengan menangkap fitur-fitur mereka dalam format numerik.
+Tidak semua LLM mampu membuat agen, jadi model canggih seperti GPT-4, Gemini 1.5 Pro, atau Mistral diperlukan.
 
-Ketika Anda memberikan pertanyaan, LangChain akan mengubah kueri menjadi vektor, lalu mencari vektor dokumen untuk kecocokan yang paling relevan.
+Mari saya tunjukkan cara membuat agen menggunakan LangChain selanjutnya.
 
-LangChain kemudian mengirim kueri pengguna dan potongan teks relevan ke LLM agar LLM dapat menghasilkan respons berdasarkan input yang diberikan.
+## Membuat Agen AI Dengan LangChain
 
-Proses menemukan informasi teks yang relevan dan mengirimkannya ke LLM juga dikenal sebagai Retrieval Augmented Generation,
-
-atau disingkat RAG.
-
-Dengan menggunakan LangChain, Anda dapat membuat aplikasi yang memproses dokumen sehingga Anda dapat menanyakan pertanyaan kepada LLM yang relevan dengan konten dokumen tersebut.
-
-Mari kita mulai.
-
-## Mendapatkan Dokumen
-
-Anda akan mengunggah dokumen ke aplikasi dan mengajukan pertanyaan tentangnya. Anda bisa mendapatkan file teks bernama ai-discussion.txt dari folder kode sumber.
-
-File teks berisi cerita fiksi yang membahas dampak AI terhadap kemanusiaan.
-
-Karena bersifat fiksi, Anda dapat memastikan bahwa LLM memperoleh jawaban dari dokumen dan bukan dari data pelatihannya.
-
-## Membangun Aplikasi Chat With Document
-
-Buat file JavaScript baru bernama rag_app.js, lalu impor paket yang diperlukan untuk aplikasi Chat With Document sebagai berikut:
+Buat file JavaScript baru bernama react_agent.js dan impor modul berikut:
 
 ```javascript
-import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai"
-import { ChatPromptTemplate } from "@langchain/core/prompts"
-import prompts from "prompts"
-
-// Paket baru:
-import { TextLoader } from "langchain/document_loaders/fs/text"
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
-import { MemoryVectorStore } from "langchain/vectorstores/memory"
-import { createRetrievalChain } from "langchain/chains/retrieval"
-import { createStuffDocumentsChain } from "langchain/chains/combine_documents"
-
-import "dotenv/config"
+import { pull } from "langchain/hub"
+import { ChatOpenAI } from "@langchain/openai"
+import { AgentExecutor, createReactAgent } from "langchain/agents"
+import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search"
+import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_run"
+import { Calculator } from "@langchain/community/tools/calculator"
 ```
 
-Kelas `OpenAIEmbeddings` digunakan untuk mengakses model embedding OpenAI.
+![Image from PDF page 86](images/page_86_img_0_X8.jpg)
 
-Kelas `TextLoader` digunakan untuk memuat file teks, sedangkan `RecursiveCharacterTextSplitter` digunakan untuk membagi teks menjadi potongan-potongan kecil agar dapat diproses lebih efisien oleh LLM.
+```javascript
+import "dotenv/config"
+import prompts from "prompts"
+```
 
-Kelas `MemoryVectorStore` digunakan untuk menyimpan data vektor di memori. `createRetrievalChain` mengambil dokumen dan meneruskannya ke `createStuffDocumentsChain`, yang meneruskan dokumen ke LLM.
+`dotenv` dan `ChatOpenAI` sudah digunakan sebelumnya, tetapi sisanya adalah modul baru yang digunakan untuk membuat agen AI.
 
-Dengan paket-paket yang diimpor, Anda dapat mendefinisikan llm berikutnya seperti yang ditunjukkan di bawah:
+Fungsi pull digunakan untuk mengambil prompt dari hub komunitas LangChain. Anda dapat mengunjungi hub di https://smith.langchain.com/hub
+
+Hub komunitas LangChain adalah kumpulan terbuka prompt yang dapat Anda gunakan gratis dalam proyek Anda.
+
+Modul `createReactAgent` membuat agen yang menggunakan prompting `ReAct`, sedangkan `AgentExecutor` mengelola eksekusi agen, seperti memproses input, menghasilkan respons, dan memperbarui status agen.
+
+Selanjutnya, inisialisasi llm dan dapatkan prompt dari hub sebagai berikut:
 
 ```javascript
 const llm = new ChatOpenAI({
   model: "gpt-4o",
   apiKey: process.env.OPENAI_KEY,
 })
+
+const prompt = await pull("hwchase17/react")
 ```
 
-Setelah llm, muat teks menggunakan TextLoader dan berikan path ke dokumen di `TextLoader` sebagai berikut:
+Fungsi `pull()` mengambil prompt dari repositori yang Anda tentukan sebagai argumennya. Di sini, kami menggunakan prompt "react" yang dibuat oleh pengguna `"hwchase17"`.
+
+Jika Anda ingin melihat promptnya, Anda dapat mengunjungi https://smith.langchain.com/hub/hwchase17/react
+
+Selanjutnya, instansiasi alat yang ingin kami sediakan untuk LLM, lalu buat objek eksekutor agen sebagai berikut:
 
 ```javascript
-const loader = new TextLoader("./ai-discussion.txt")
-const docs = await loader.load()
-```
+const wikipedia = new WikipediaQueryRun()
 
-Dokumen akan berupa array dari objek Document. Sekarang Anda perlu membuat pembagi teks dan membagi dokumen menjadi potongan-potongan:
+const ddgSearch = new DuckDuckGoSearch({ maxResults: 3 })
 
-```javascript
-const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
-})
+const calculator = new Calculator()
 
-const chunks = await splitter.splitDocuments(docs)
-```
+const tools = [wikipedia, ddgSearch, calculator]
 
-Untuk mengubah potongan dokumen menjadi vektor, Anda perlu menggunakan model embedding.
+const agent = await createReactAgent({ llm, tools, prompt })
 
-OpenAI menyediakan endpoint API untuk mengubah dokumen menjadi vektor, dan LangChain menyediakan kelas `OpenAIEmbeddings` sehingga Anda dapat menggunakan embedding ini dengan mudah.
-
-Tambahkan kode berikut di bawah variabel chunks:
-
-```javascript
-const embeddings = new OpenAIEmbeddings({ apiKey: process.env.OPENAI_KEY })
-
-const vectorStore = await MemoryVectorStore.fromDocuments(chunks, embeddings)
-
-const retriever = vectorStore.asRetriever()
-```
-
-Metode `MemoryVectorStore.fromDocuments()` mengirimkan potongan dan data embedding ke penyimpan vektor.
-
-Selanjutnya, Anda perlu memanggil metode `asRetriever()` untuk membuat objek retriever, yang menerima input pengguna dan mengembalikan potongan dokumen yang relevan.
-
-Setelah itu, Anda perlu membuat prompt untuk dikirim ke LLM:
-
-```javascript
-const systemPrompt = `Anda adalah asisten untuk tugas tanya-jawab.
-  Gunakan potongan konteks yang diambil berikut untuk menjawab
-  pertanyaan. Jika Anda tidak tahu jawabannya, katakan bahwa Anda
-  tidak tahu. Gunakan maksimal tiga kalimat dan buat jawabannya
-  ringkas.
-  \n\n
-  {context}`
-
-const prompt = ChatPromptTemplate.fromMessages([
-  ["system", systemPrompt],
-  ["human", "{input}"],
-])
-```
-
-Dengan prompt yang dibuat, Anda perlu membuat chain dengan memanggil fungsi `createStuffDocumentsChain()` dan meneruskan llm dan prompt seperti ini:
-
-```javascript
-const questionAnswerChain = await createStuffDocumentsChain({
-  llm: llm,
-  prompt: prompt,
+const agentExecutor = new AgentExecutor({
+  agent,
+  tools,
+  verbose: true, // tampilkan log
 })
 ```
 
-`questionAnswerChain` ini akan menangani pengisian template prompt dan pengiriman prompt ke LLM.
+Ada tiga alat yang kami sediakan untuk agen:
 
-Selanjutnya, teruskan `questionAnswerChain` ke fungsi `createRetrievalChain()`:
+1. wikipedia untuk mengakses dan meringkas artikel Wikipedia
+2. ddgSearch untuk mencari di internet menggunakan mesin pencari DuckDuckGo
+3. calculator untuk menghitung persamaan matematika
 
-```javascript
-const ragChain = await createRetrievalChain({
-  retriever: retriever,
-  combineDocsChain: questionAnswerChain,
-})
-```
+Untuk menjalankan alat pencarian DuckDuckGo, Anda perlu menginstal paket duck-duck-scrape menggunakan npm:
 
-`ragChain` di atas akan meneruskan input ke retriever, yang mengembalikan bagian relevan dari dokumen ke chain.
+`npm install duck-duck-scrape`
 
-Bagian relevan dari chain dan input kemudian diteruskan ke `questionAnswerChain` untuk mendapatkan hasil.
+Alat lainnya sudah tersedia dari modul @langchain/community.
 
-Sekarang Anda dapat meminta input pengguna, lalu jalankan metode `invoke()` dengan input tersebut:
+Setelah instalasi selesai, lengkapi agen dengan menambahkan prompt pertanyaan dan panggil metode invoke():
 
 ```javascript
 const { question } = await prompts([
@@ -155,202 +101,120 @@ const { question } = await prompts([
   },
 ])
 
-const response = await ragChain.invoke(
-  { input: question },
-  {
-    configurable: {
-      sessionId: "test",
-    },
-  }
-)
-console.log(response.answer)
+const response = await agentExecutor.invoke({ input: question })
+console.log(response)
 ```
 
-Ketika LLM mengembalikan jawaban, Anda mencetak jawaban ke baris perintah.
+Agen AI sekarang selesai. Anda dapat menjalankan agen menggunakan Node.js sebagai berikut:
 
-Sekarang aplikasi selesai. Anda dapat menjalankannya menggunakan Node.js dari baris perintah:
+`node react_agent.js`
 
-`node rag_app.js`
+Sekarang berikan tugas untuk diselesaikan agen, seperti 'Siapa presiden pertama Amerika?'
 
-Kemudian ajukan pertanyaan yang relevan dengan konteks dokumen. Berikut contohnya:
+Karena parameter verbose disetel true di AgentExecutor, Anda akan melihat penalaran dan tindakan yang diambil oleh LLM:
 
-`node rag_app.js`
+Gambar 32. Agen LLM Berpikir dan Melakukan Tindakan
 
-```
-Pertanyaan Anda: … Di mana Mr. Thompson bekerja?
-Mr. Thompson bekerja di VegaTech Inc. sebagai Kepala Ilmuwan AI.
-```
+LLM akan mengambil tindakan menggunakan agen yang telah kita buat untuk mencari jawaban akhir.
 
-Seperti yang kita lihat, LLM dapat menjawab pertanyaan dengan menganalisis prompt yang dibuat oleh LangChain dan input kita.
+Log berikut menunjukkan pemikiran yang dilakukan oleh LLM:
 
-## Menambahkan Memori Obrolan untuk Konteks
+![Image from PDF page 89](images/page_89_img_0_X19.jpg)
 
-Untuk menambahkan memori obrolan ke chain RAG, Anda perlu meningkatkan objek retriever dengan membuat retriever yang sadar riwayat.
+Gambar 33. Agen LLM Selesai
 
-Retriever yang sadar riwayat ini kemudian digunakan untuk mengontekstualisasikan pertanyaan terbaru Anda dengan menganalisis riwayat obrolan.
+Setelah agen selesai berjalan, ia akan mengembalikan objek dengan dua properti: input dan output seperti yang ditunjukkan di bawah:
 
-Anda perlu mengimpor chain `createHistoryAwareRetriever`, lalu membuat objek `createHistoryAwareRetriever` sebagai berikut:
-
-```javascript
-import { createHistoryAwareRetriever } from "langchain/chains/history_aware_retriever"
-
-// ... kode lainnya
-
-const retriever = vectorStore.asRetriever()
-
-const contextualizeSystemPrompt = `
-Diberikan riwayat obrolan dan pertanyaan pengguna terbaru
-yang mungkin merujuk konteks dalam riwayat obrolan, rumuskan pertanyaan mandiri
-yang dapat dipahami tanpa riwayat obrolan. JANGAN jawab pertanyaan,
-hanya reformulasikan jika diperlukan dan selain itu kembalikan sebagaimana adanya.
-`
-
-const contextualizePrompt = ChatPromptTemplate.fromMessages([["system", contextualizeSystemPrompt], new MessagesPlaceholder("chat_history"), ["human", "{input}"]])
-
-const historyAwareRetriever = await createHistoryAwareRetriever({
-  llm,
-  retriever,
-  rephrasePrompt: contextualizePrompt,
-})
-```
-
-`contextualizePrompt` digunakan untuk membuat LLM merumuskan ulang pertanyaan dalam konteks riwayat obrolan.
-
-Prompt tersebut diteruskan ke objek `createHistoryAwareRetriever`.
-
-Selanjutnya, Anda perlu menambahkan `MessagesPlaceholder` ke objek prompt juga:
-
-```javascript
-const prompt = ChatPromptTemplate.fromMessages([["system", systemPrompt], new MessagesPlaceholder("chat_history"), ["human", "{input}"]])
-```
-
-Setelah itu, perbarui `ragChain` untuk menggunakan `historyAwareRetriever` sebagai berikut:
-
-```javascript
-const ragChain = await createRetrievalChain({
-  retriever: historyAwareRetriever,
-  combineDocsChain: questionAnswerChain,
-})
-```
-
-Sekarang setelah Anda memiliki chain RAG yang diperbarui, teruskan chain ke kelas `RunnableWithMessageHistory()` seperti yang kita lakukan di Bab 9:
-
-```javascript
-// Tambahkan impor
-import { ChatMessageHistory } from "langchain/memory"
-import { RunnableWithMessageHistory } from "@langchain/core/runnables"
-
-// ... kode lainnya
-
-const ragChain = await createRetrievalChain({
-  retriever: historyAwareRetriever,
-  combineDocsChain: questionAnswerChain,
-})
-
-const history = new ChatMessageHistory()
-
-const conversationalRagChain = new RunnableWithMessageHistory({
-  runnable: ragChain,
-  getMessageHistory: (sessionId) => history,
-  inputMessagesKey: "input",
-  historyMessagesKey: "chat_history",
-  outputMessagesKey: "answer",
-})
-```
-
-Sebagai langkah terakhir, ubah chain yang dipanggil ketika aplikasi menerima pertanyaan menjadi `conversationalRagChain`, dan tambahkan parameter configurable untuk sessionId.
-
-Untuk mengulangi prompt, tambahkan loop while seperti sebelumnya:
-
-```javascript
-let exit = false
-while (!exit) {
-  const { question } = await prompts([
-    {
-      type: "text",
-      name: "question",
-      message: "Pertanyaan Anda: ",
-      validate: (value) => (value ? true : "Pertanyaan tidak boleh kosong"),
-    },
-  ])
-  if (question == "/bye") {
-    console.log("Sampai jumpa!")
-    exit = true
-  } else {
-    const response = await conversationalRagChain.invoke(
-      { input: question },
-      {
-        configurable: {
-          sessionId: "test",
-        },
-      }
-    )
-    console.log(response.answer)
-  }
+```json
+{
+  "input": "Who was the first president of America?",
+  "output": "The first president of the United States was George Washington."
 }
 ```
 
-Sekarang kita dapat berinteraksi dengan dokumen, dan AI menyadari riwayat obrolan. Kerja bagus!
+Jika LLM yang Anda gunakan sudah memiliki jawaban dalam data pelatihannya, Anda mungkin melihat output segera tanpa log [agent/action].
 
-## Tentang Basis Data Vektor
+Misalnya, saya bertanya 'Kapan Hari Kemerdekaan Amerika?' di bawah:
 
-Kami telah menggunakan `MemoryVectorStore` untuk menyimpan data vektor dalam aplikasi ini, tetapi penyimpanan ini sebenarnya tidak direkomendasikan untuk produksi.
-
-Ketika aplikasi berhenti berjalan, data vektor di memori akan hilang.
-
-Kebanyakan aplikasi basis data modern seperti PostgreSQL, Redis, dan MongoDB mendukung penyimpanan data vektor, jadi Anda mungkin ingin menggunakannya di produksi.
-
-Anda dapat melihat detail integrasi basis data vektor di https://js.langchain.com/v0.2/docs/integrations/vectorstores/
-
-Basis data `MemoryVectorStore` hanya direkomendasikan untuk prototyping dan pengujian.
-
-## Mengganti LLM
-
-Jika Anda ingin mengubah LLM yang digunakan untuk aplikasi ini, Anda juga perlu mengubah model embedding yang digunakan untuk pembuatan vektor.
-
-Untuk Google Gemini, Anda dapat mengimpor model `GoogleGenerativeAIEmbeddings` sebagai berikut:
-
-```javascript
-import { ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings } from "@langchain/google-genai"
-
-// llm
-const llm = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
-  apiKey: process.env.GOOGLE_GEMINI_KEY,
-})
-
-// embeddings
-const embeddings = new GoogleGenerativeAIEmbeddings({
-  apiKey: process.env.GOOGLE_GEMINI_KEY,
-  modelName: "embedding-001",
-})
+```
+Pertanyaan Anda: … Kapan Hari Kemerdekaan Amerika?
 ```
 
-Untuk Ollama, Anda dapat menggunakan kelas `OllamaEmbeddings` yang dikembangkan komunitas seperti ini:
+Hari Kemerdekaan Amerika adalah peristiwa sejarah terkenal yang tidak memerlukan pencarian pembaruan terkini atau informasi detail dari ensiklopedia.
 
-```javascript
-import { ChatOllama } from "@langchain/community/chat_models/ollama"
-import { OllamaEmbeddings } from "@langchain/community/embeddings/ollama"
+Ini adalah informasi yang umum diketahui.
 
-// llm
-const llm = new ChatOllama({ model: "mistral" })
-
-// embeddings
-const embeddings = new OllamaEmbeddings({ model: "mistral" })
+```
+Jawaban Akhir: Hari Kemerdekaan Amerika adalah pada 4 Juli.
 ```
 
-Pastikan Anda menggunakan model yang sama saat membuat instansi kelas `ChatOllama` dan `OllamaEmbeddings`.
+```json
+{
+  "input": "When is America Independence Day?",
+  "output": "America's Independence Day is on July 4th."
+}
+```
+
+Karena jawaban sudah ada dalam data pelatihannya, LLM memutuskan untuk menjawab langsung.
+
+![Image from PDF page 90](images/page_90_img_0_X22.jpg)
+
+Mengajukan Pertanyaan Berbeda kepada Agen
+
+Anda sekarang dapat mengajukan berbagai jenis pertanyaan untuk melihat apakah LLM cukup pintar untuk menggunakan alat yang tersedia.
+
+Jika Anda bertanya 'Siapa Perdana Menteri Singapura saat ini?', LLM seharusnya menggunakan pencarian DuckDuckGo untuk mencari informasi terbaru:
+
+Gambar 34. Agen LLM Melakukan Pencarian
+
+Jika Anda bertanya pertanyaan matematika seperti 'Ambil 5 pangkat 2 lalu kalikan dengan jumlah enam dan tiga', agen seharusnya menggunakan alat kalkulator:
+
+Gambar 35. Agen LLM Melakukan Matematika
+
+LLM terbaru cukup pintar untuk memahami maksud pertanyaan dan memilih alat yang tepat untuk pekerjaan tersebut.
+
+Daftar Alat AI yang Tersedia
+
+Agen AI hanya dapat menggunakan alat yang Anda tambahkan saat Anda membuat agen.
+
+Daftar alat yang disediakan oleh LangChain dapat ditemukan di https://js.langchain.com/v0.2/docs/integrations/tools.
+
+![Image from PDF page 91](images/page_91_img_0_X26.jpg)
+
+![Image from PDF page 91](images/page_91_img_1_X27.jpg)
+
+Namun, beberapa alat seperti Calculator dan BingSerpAPI tidak terdaftar di halaman integrasi di atas, jadi Anda perlu menyelami kode sumber paket komunitas LangChain untuk menemukan semua alat yang tersedia.
+
+Cukup buka folder node_modules/@langchain/community/tools, lalu masuk ke folder tools, dan Anda akan melihat semua alat di sana:
+
+Gambar 36. Alat Tersedia untuk Agen LLM
+
+Anda dapat melihat alat lain seperti pencarian Google dan Bing di sini, tetapi alat-alat ini memerlukan kunci API untuk dijalankan.
+
+![Image from PDF page 93](images/page_93_img_0_X33.jpg)
+
+## Jenis-jenis Agen AI
+
+Ada beberapa jenis agen AI yang diidentifikasi saat ini, dan yang kita buat disebut agen ReAct (Reason + Act).
+
+Agen ReAct adalah agen serbaguna, dan ada agen yang lebih khusus seperti agen XML dan agen JSON.
+
+Anda dapat membaca lebih lanjut tentang berbagai jenis agen di https://js.langchain.com/v0.1/docs/modules/agents/agent_types/
+
+Seiring LLM dan LangChain meningkat, jenis agen baru mungkin dibuat, sehingga definisi di atas tidak akan selalu relevan.
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder `11_Chat_With_Document` dari kode sumber buku.
+Kode untuk bab ini tersedia di folder 10_Agents_and_Tools dari kode sumber buku.
 
-Dalam bab ini, Anda telah belajar cara membuat aplikasi Chat With Document menggunakan LangChain.
+Meskipun kita belum memiliki asisten robot otonom (masih) di dunia kita saat ini, kita sudah dapat melihat bagaimana pengembangan agen AI suatu hari nanti dapat digunakan sebagai otak robot AI.
 
-Dengan teknik RAG, LangChain dapat digunakan untuk mengambil informasi dari dokumen, lalu meneruskan informasi tersebut ke LLM.
+Agen AI adalah inovasi luar biasa yang menunjukkan bagaimana mesin dapat menghasilkan serangkaian tindakan untuk mencapai tujuan.
 
-Hal pertama yang perlu Anda lakukan adalah memproses dokumen dan mengubahnya menjadi potongan, yang kemudian dapat diubah menjadi vektor menggunakan model embedding.
+Saat Anda membuat agen, LLM digunakan sebagai mesin penalaran yang perlu menghasilkan langkah-langkah logika untuk menyelesaikan tugas.
 
-Vektor disimpan dalam basis data vektor, dan retriever yang dibuat dari basis data digunakan ketika pengguna mengirim kueri atau input.
+Agen juga dapat menggunakan berbagai alat untuk bertindak, seperti menjelajah web atau memecahkan persamaan matematika.
 
-Selanjutnya, mari kita lihat bagaimana kita dapat memuat dokumen dalam format berbeda, seperti .docx dan .pdf.
+Tugas yang lebih kompleks yang menggunakan banyak alat juga dapat dieksekusi oleh agen-agen ini.
+
+Terkadang, LLM yang terlatih dengan baik dapat menjawab langsung dari data pelatihan, melewati kebutuhan untuk menggunakan alat.

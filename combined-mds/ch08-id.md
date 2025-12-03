@@ -1,176 +1,172 @@
-# BAB 9: MENERAPKAN RIWAYAT OBROLAN DI LANGCHAIN
+# BAB 8: RANTAI BERURUTAN BIASA
 
-Sejauh ini, LLM mengambil pertanyaan yang kita ajukan dan memberikan jawaban yang diambil dari data pelatihan.
+Rantai berurutan biasa adalah bentuk yang lebih umum dari rantai berurutan yang memungkinkan banyak input dan output.
 
-Kembali ke aplikasi tanya jawab sederhana di Bab 5, Anda dapat mencoba mengajukan pertanyaan kepada LLM seperti:
+Input untuk rantai berikutnya biasanya merupakan campuran dari output dari rantai sebelumnya dan sumber lain seperti ini:
 
-1. Kapan Piala Dunia FIFA terakhir diadakan?
+Gambar 28. Ilustrasi Rantai Berurutan
 
-2. Kalikan tahunnya dengan 2
+![Gambar dari halaman PDF 72](images/page_72_img_0_X6.jpg)
 
-Pada saat penulisan ini, Piala Dunia FIFA terakhir diadakan pada tahun 2022. Membaca prompt kedua di atas, kita dapat memahami bahwa 'tahun' merujuk pada '2022'.
+Rantai ini sedikit lebih rumit daripada rantai berurutan sederhana karena kita perlu melacak banyak input dan output.
 
-Namun, karena LLM tidak memiliki kesadaran tentang interaksi sebelumnya, jawabannya tidak akan terkait.
-
-Dengan GPT, LLM merujuk pada tahun saat ini alih-alih tahun Piala Dunia FIFA terakhir:
-
-Gambar 30. Contoh LLM Keluar dari Konteks
-
-LLM tidak dapat memahami bahwa kita memberikan instruksi tindak lanjut untuk pertanyaan sebelumnya.
-
-Untuk mengatasi masalah ini, Anda perlu menyimpan pesan-pesan sebelumnya dan menggunakannya saat mengirim prompt baru.
-
-Untuk mengikuti bab ini, Anda dapat menyalin kode dari Bab 5 dan menggunakannya sebagai awal.
-
-## Membuat Template Prompt Obrolan
-
-Pertama, Anda perlu membuat template prompt obrolan yang memiliki riwayat obrolan yang disuntikkan ke dalamnya.
-
-Template prompt obrolan berbeda dari template prompt biasa. Template ini menerima array pesan, dan setiap pesan dapat dikaitkan dengan peran tertentu.
-
-Berikut adalah contoh template prompt obrolan:
+Sebagai contoh, misalkan Anda mengubah essayPrompt dari bab sebelumnya untuk memiliki dua inputVariables sebagai berikut:
 
 ```javascript
-import { ChatPromptTemplate } from "@langchain/core/prompts"
+const essayPrompt = new PromptTemplate({
+  inputVariables: ["title", "emotion"],
+  template: `
+  Anda adalah penulis nonfiksi ahli.
 
-const chatTemplate = ChatPromptTemplate.fromMessages([
-  ["system", "Anda adalah bot AI yang membantu. Nama Anda adalah {name}"],
-  ["human", "Halo, apa kabar?"],
-  ["ai", "Saya baik-baik saja, terima kasih!"],
-  ["human", "{input}"],
-])
-```
+    Anda perlu menulis esai pendek 350 kata untuk judul berikut:
 
-![Gambar dari halaman PDF 80](images/page_80_img_0_X8.jpg)
+    {title}
 
-Pada contoh di atas, pesan dikaitkan dengan peran `'system'`, `'human'`, dan `'ai'`. Pesan `'system'` digunakan untuk mempengaruhi perilaku AI.
-
-Anda dapat menggunakan kelas `ChatPromptTemplate` dan `MessagesPlaceholder` untuk membuat prompt yang menerima riwayat obrolan sebagai berikut:
-
-```javascript
-import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts"
-
-const prompt = ChatPromptTemplate.fromMessages([
-  [
-    "system",
-    `Anda adalah chatbot AI yang sedang bercakap-cakap dengan manusia.
-     Gunakan konteks berikut untuk memahami pertanyaan manusia.
-     Jangan sertakan emoji dalam jawaban Anda`,
-  ],
-  new MessagesPlaceholder("chatHistory"),
-  ["human", "{input}"],
-])
-```
-
-Kelas `MessagesPlaceholder` bertindak sebagai pembuka di mana Anda dapat menyuntikkan riwayat obrolan. Anda perlu meneruskan kunci string yang menyimpan riwayat obrolan saat menginstansiasi kelas.
-
-## Menyimpan Pesan di LangChain
-
-Untuk menyimpan pesan obrolan di LangChain, Anda dapat menggunakan kelas ChatMessageHistory yang disediakan:
-
-```javascript
-import { ChatMessageHistory } from "langchain/memory"
-
-const history = new ChatMessageHistory()
-```
-
-Kelas `ChatMessageHistory` menyediakan metode untuk `get`, `add`, dan `clear` pesan.
-
-Tetapi Anda tidak akan memanipulasi objek history secara langsung. Sebaliknya, Anda perlu meneruskan objek ke kelas RunnableWithMessageHistory ini.
-
-Kelas `RunnableWithMessageHistory` membuat rantai yang menyuntikkan riwayat obrolan untuk Anda. Ini juga akan menambahkan pesan baru secara otomatis saat Anda memanggil rantai:
-
-```javascript
-const chain = prompt.pipe(llm)
-
-const chainWithHistory = new RunnableWithMessageHistory({
-  runnable: chain,
-  getMessageHistory: (sessionId) => history,
-  inputMessagesKey: "input",
-  historyMessagesKey: "chatHistory",
+    Pastikan esai menarik dan membuat pembaca merasa {emotion}.
+  `,
 })
 ```
 
-Saat membuat objek `RunnableWithMessageHistory`, Anda perlu meneruskan rantai yang ingin Anda suntikkan riwayatnya (`runnable`) dan fungsi yang mengembalikan riwayat obrolan (`getMessageHistory`).
+Input emosi yang diperlukan oleh prompt esai tidak berasal dari rantai pertama, yang hanya mengembalikan variabel judul.
 
-`inputMessagesKey` adalah kunci input yang ada dalam prompt, sementara `historyMessagesKey` adalah variabel yang menerima riwayat (harus sama dengan kunci string yang diteruskan ke `MessagesPlaceholder` dalam prompt)
-
-Sekarang objek `chainWithHistory` telah dibuat, Anda dapat menguji AI dan melihat apakah ia sadar akan percakapan sebelumnya. Gunakan loop while di sini untuk menampilkan input lagi:
+Anda perlu menyuntikkan input emosi saat membuat overallChain sebagai berikut:
 
 ```javascript
-console.log("Mengobrol dengan AI")
-console.log("Ketik /bye untuk menghentikan program")
-
-let exit = false
-while (!exit) {
-  const { question } = await prompts([
-    {
-      type: "text",
-      name: "question",
-      message: "Pertanyaan Anda: ",
-      validate: (value) => (value ? true : "Pertanyaan tidak boleh kosong"),
-    },
-  ])
-  if (question == "/bye") {
-    console.log("Sampai jumpa!")
-    exit = true
-  } else {
-    const response = await chainWithHistory.invoke(
-      { input: question },
-      {
-        configurable: {
-          sessionId: "test",
-        },
-      }
-    )
-    console.log(response.content)
-  }
-}
+const overallChain = firstChain
+  .pipe((result) => ({
+    title: result,
+    emotion,
+  }))
+  .pipe(secondChain)
 ```
 
-Saat memanggil objek `chainWithHistory`, Anda perlu meneruskan kunci sessionId ke parameter config seperti yang ditunjukkan di atas.
+Dengan cara ini, input judul diperoleh dari output firstChain, sementara input emosi berasal dari sumber lain.
 
-`sessionId` dapat berupa nilai string apa pun.
-
-Sekarang Anda dapat menguji aplikasi dengan memberikan pertanyaan tindak lanjut:
-
-```
-Q: Kapan Piala Dunia FIFA terakhir diadakan?
-A: Piala Dunia FIFA terakhir diadakan pada tahun 2022 di Qatar.
-Q: Kalikan tahunnya dengan 2
-A: Mengalikan tahun 2022 dengan 2 menghasilkan 4044.
-```
-
-Karena riwayat obrolan disuntikkan ke dalam prompt, LLM dapat menempatkan pertanyaan kedua dalam konteks yang pertama.
-
-Jika Anda meneruskan opsi verbose ke LLM:
+Sekarang Anda perlu menanyakan input emosi kepada pengguna:
 
 ```javascript
-const llm = new ChatOpenAI({
-  model: "gpt-4o",
-  apiKey: process.env.OPENAI_KEY,
-  verbose: true,
+console.log("Penulis Esai")
+```
+
+```javascript
+const questions = [
+  {
+    type: "text",
+    name: "topic",
+    message: "Topik apa yang akan ditulis?",
+    validate: (value) => (value ? true : "Topik tidak boleh kosong"),
+  },
+  {
+    type: "text",
+    name: "emotion",
+    message: "Emosi apa yang ingin disampaikan?",
+    validate: (value) => (value ? true : "Emosi tidak boleh kosong"),
+  },
+]
+
+const { topic, emotion } = await prompts(questions)
+```
+
+Dan sekarang Anda memiliki dua input untuk rantai kedua: `title` dan `emotion`.
+
+Pastikan bahwa overallChain dideklarasikan di bawah baris await `prompts()`.
+
+## Format Variabel Output
+
+Rantai berurutan biasanya juga melacak banyak variabel output.
+
+Untuk melacak banyak variabel output, Anda dapat menggunakan StructuredOutputParser dari LangChain untuk memformat output sebagai objek JSON.
+
+Pertama, impor parser dari LangChain:
+
+```javascript
+import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers"
+```
+
+Selanjutnya, buat parser yang berisi skema output sebagai objek.
+
+Misalkan Anda ingin menampilkan nilai judul, emosi, dan esai dalam respons.
+
+Panggil metode `StructuredOutputParser.fromNamesAndDescriptions()` dan berikan skema sebagai berikut:
+
+```javascript
+const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
+
+const structuredParser = StructuredOutputParser.fromNamesAndDescriptions({
+  title: "judul esai",
+  emotion: "emosi yang disampaikan oleh esai",
+  essay: "konten esai",
 })
 ```
 
-Anda akan melihat riwayat obrolan diteruskan saat Anda menjalankan pertanyaan kedua di dalam array pesan:
+Setelah itu, masukkan parser ke dalam secondChain sebagai berikut:
 
-```
-[llm/start] [1:llm:ChatOpenAI] Memasuki run LLM dengan input: {
-  "messages": [
-    ... objek yang berisi pesan obrolan sebelumnya
-  ]
-}
+```javascript
+const secondChain = essayPrompt.pipe(llm).pipe(structuredParser)
 ```
 
-Pesan-pesan sebelumnya ini disuntikkan oleh rantai chainWithHistory ke dalam prompt.
+Sekarang LLM diinstruksikan untuk mengurai output menggunakan `structuredParser`.
+
+Dalam `essayPrompt`, perbarui kedua parameter inputVariables dan template untuk menyertakan input `format_instructions`:
+
+```javascript
+const essayPrompt = new PromptTemplate({
+  inputVariables: ["title", "emotion", "format_instructions"],
+  template: `
+  Anda adalah penulis nonfiksi ahli.
+
+    Anda perlu menulis esai pendek 350 kata untuk judul berikut:
+
+    {title}
+
+    Pastikan esai menarik dan membuat pembaca merasa {emotion}.
+
+    {format_instructions}
+  `,
+})
+```
+
+Untuk langkah terakhir, berikan input `format_instructions` dengan memanggil metode `structuredParser.getFormatInstructions()` saat membuat objek `overallChain`:
+
+```javascript
+const overallChain = firstChain
+  .pipe((result) => ({
+    title: result,
+    emotion,
+    format_instructions: structuredParser.getFormatInstructions(),
+  }))
+  .pipe(secondChain)
+```
+
+Metode `getFormatInstructions()` mengembalikan string yang berisi instruksi dan skema JSON. Anda dapat melihat string tersebut dengan memanggil `console.log()` jika ingin:
+
+```javascript
+console.log(structuredParser.getFormatInstructions())
+```
+
+Sekarang Anda dapat menjalankan aplikasi dan memberikan input judul dan emosi untuk esai. LLM akan mengembalikan objek JavaScript:
+
+Gambar 29. Menerima Output JSON
+
+Jika Anda ingin menulis setiap variabel output, Anda dapat mengakses propertinya secara langsung sebagai berikut:
+
+```javascript
+const response = await overallChain.invoke({
+  topic,
+})
+console.log(response.title)
+console.log(response.emotion)
+console.log(response.essay)
+```
+
+Sekarang Anda memiliki rantai berurutan yang melacak banyak input dan output. Sangat bagus!
+
+![Gambar dari halaman PDF 77](images/page_77_img_0_X19.jpg)
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder `09_Chat_History` dari kode sumber buku.
+Kode untuk bab ini tersedia di folder 08_Sequential_Chain dari kode sumber buku.
 
-Dalam bab ini, Anda telah mempelajari cara menyuntikkan riwayat obrolan ke dalam prompt menggunakan kelas `RunnableWithMessageHistory` dari LangChain.
+Ketika Anda membuat rantai berurutan, Anda dapat menambahkan input tambahan ke rantai berikutnya yang tidak berasal dari rantai sebelumnya.
 
-Menambahkan riwayat obrolan memungkinkan AI untuk mengontekstualisasikan pertanyaan Anda berdasarkan pesan-pesan sebelumnya.
-
-Menggabungkan riwayat obrolan dengan prompt, Anda dapat mengobrol dengan AI secara terus-menerus sambil mempertahankan interaksi sebelumnya.
+Anda juga dapat memformat output sebagai objek JSON untuk membuat respons lebih terorganisir dan lebih mudah diproses.

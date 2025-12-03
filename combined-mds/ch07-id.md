@@ -1,172 +1,271 @@
-# BAB 8: RANTAI BERURUTAN BIASA
+# BAB 7: BAHASA EKSPRESI LANCHAIN (LCEL)
 
-Rantai berurutan biasa adalah bentuk yang lebih umum dari rantai berurutan yang memungkinkan banyak input dan output.
+Pada bab sebelumnya, kita memanggil metode prompt.format() di dalam metode llm.invoke() seperti yang ditunjukkan di bawah ini:
 
-Input untuk rantai berikutnya biasanya merupakan campuran dari output dari rantai sebelumnya dan sumber lain seperti ini:
+```javascript
+const response = await llm.invoke(await prompt.format({ country, paragraph, language }))
 
-Gambar 28. Ilustrasi Rantai Berurutan
+console.log(response.content)
+```
 
-![Gambar dari halaman PDF 72](images/page_72_img_0_X6.jpg)
+Meskipun teknik ini berfungsi, LangChain sebenarnya menyediakan cara deklaratif untuk mengeksekusi objek prompt dan llm secara berurutan.
 
-Rantai ini sedikit lebih rumit daripada rantai berurutan sederhana karena kita perlu melacak banyak input dan output.
+Cara deklaratif ini disebut Bahasa Ekspresi LangChain (LCEL untuk singkatnya)
 
-Sebagai contoh, misalkan Anda mengubah essayPrompt dari bab sebelumnya untuk memiliki dua inputVariables sebagai berikut:
+Dengan menggunakan LCEL, Anda dapat membungkus prompt dan objek llm dalam sebuah rantai sebagai berikut:
+
+```javascript
+const chain = prompt.pipe(llm)
+```
+
+LCEL ditandai dengan metode `pipe()`, yang dapat digunakan untuk membungkus komponen LangChain bersama-sama.
+
+Komponen dalam LangChain termasuk prompt, LLM, rantai itu sendiri, dan parser. Kita akan mempelajari lebih lanjut tentang parser di bagian berikutnya.
+
+Anda dapat memanggil metode `invoke()` dari objek rantai, dan meneruskan input yang diperlukan oleh prompt sebagai objek seperti ini:
+
+```javascript
+const response = await chain.invoke({ country, paragraph, language })
+
+console.log(response.content)
+```
+
+Objek rantai akan memformat prompt dan kemudian meneruskannya secara otomatis ke objek llm.
+
+Objek respons sama seperti ketika Anda memanggil metode `llm.invoke()`: ini adalah objek pesan dengan jawaban yang disimpan di bawah properti content.
+
+## Rantai Berurutan
+
+Dengan menggunakan LCEL, Anda dapat membuat banyak rantai dan menjalankan prompt berikutnya setelah LLM merespons prompt sebelumnya.
+
+Metode menjalankan prompt berikutnya setelah prompt sebelumnya dijawab ini disebut rantai berurutan (sequential chain).
+
+Berdasarkan input dan output hasil, rantai berurutan dibagi menjadi 2 kategori:
+
+▪ Rantai Berurutan Sederhana (Simple Sequential Chain)
+
+▪ Rantai Berurutan Biasa (Regular Sequential Chain)
+
+Kita akan menjelajahi rantai berurutan biasa di bab berikutnya. Untuk sekarang, mari kita jelajahi rantai berurutan sederhana.
+
+## Rantai Berurutan Sederhana
+
+Rantai berurutan sederhana adalah di mana setiap langkah dalam rantai memiliki satu input/output. Output dari satu langkah akan menjadi input dari prompt berikutnya:
+
+Gambar 26. Ilustrasi Rantai Berurutan Sederhana
+
+Sebagai contoh, misalkan Anda ingin membuat aplikasi yang dapat menulis esai pendek.
+
+Anda akan memberikan topik, dan LLM pertama-tama akan memutuskan judul, dan kemudian melanjutkan dengan menulis esai untuk topik tersebut.
+
+![Gambar dari halaman PDF 64](images/page_64_img_0_X11.jpg)
+
+Untuk membuat aplikasi, Anda perlu membuat prompt untuk judul terlebih dahulu:
+
+```javascript
+const titlePrompt = new PromptTemplate({
+  inputVariables: ["topic"],
+  template: `
+  Anda adalah seorang jurnalis ahli.
+
+  Anda perlu membuat judul yang menarik untuk topik berikut:
+{topic}
+
+  Jawab tepat dengan satu judul
+  `,
+})
+```
+
+TitlePrompt di atas menerima satu variabel input: topik untuk judul yang akan dihasilkannya.
+
+Selanjutnya, Anda perlu membuat prompt untuk esai sebagai berikut:
 
 ```javascript
 const essayPrompt = new PromptTemplate({
-  inputVariables: ["title", "emotion"],
+  inputVariables: ["title"],
   template: `
-  Anda adalah penulis nonfiksi ahli.
+    Anda adalah penulis nonfiksi ahli.
 
     Anda perlu menulis esai pendek 350 kata untuk judul berikut:
 
     {title}
 
-    Pastikan esai menarik dan membuat pembaca merasa {emotion}.
+    Pastikan esai menarik dan membuat pembaca merasa bersemangat.
   `,
 })
 ```
 
-Input emosi yang diperlukan oleh prompt esai tidak berasal dari rantai pertama, yang hanya mengembalikan variabel judul.
+EssayPrompt ini juga mengambil satu input: judul yang dihasilkan oleh titlePrompt yang kita buat sebelumnya.
 
-Anda perlu menyuntikkan input emosi saat membuat overallChain sebagai berikut:
+Sekarang Anda perlu membuat dua rantai, satu untuk setiap prompt:
 
 ```javascript
-const overallChain = firstChain
-  .pipe((result) => ({
-    title: result,
-    emotion,
-  }))
-  .pipe(secondChain)
+const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
+const secondChain = essayPrompt.pipe(llm)
 ```
 
-Dengan cara ini, input judul diperoleh dari output firstChain, sementara input emosi berasal dari sumber lain.
+FirstChain menggunakan kelas StringOutputParser untuk mengurai respons LLM sebagai string, jadi Anda perlu mengimpor parser dari LangChain:
 
-Sekarang Anda perlu menanyakan input emosi kepada pengguna:
+```javascript
+import { StringOutputParser } from "@langchain/core/output_parsers"
+```
+
+Dengan menggunakan string parser, respons LLM akan diubah dari objek menjadi nilai string tunggal, menghapus metadata yang disertakan dalam respons.
+
+Sekarang Anda dapat menggabungkan firstChain dan secondChain untuk membuat overallChain sebagai berikut:
+
+```javascript
+const overallChain = firstChain.pipe((firstChainResponse) => ({ title: firstChainResponse })).pipe(secondChain)
+```
+
+Perhatikan bahwa fungsi panah diteruskan dalam metode `pipe()` pertama. Fungsi ini memformat nilai yang dikembalikan oleh firstChain menjadi objek yang dapat diteruskan ke secondChain.
+
+Sekarang Anda memiliki overallChain, mari perbarui pertanyaan prompt untuk hanya menanyakan satu pertanyaan:
 
 ```javascript
 console.log("Penulis Esai")
-```
 
-```javascript
-const questions = [
+const { topic } = await prompts([
   {
     type: "text",
     name: "topic",
     message: "Topik apa yang akan ditulis?",
     validate: (value) => (value ? true : "Topik tidak boleh kosong"),
   },
-  {
-    type: "text",
-    name: "emotion",
-    message: "Emosi apa yang ingin disampaikan?",
-    validate: (value) => (value ? true : "Emosi tidak boleh kosong"),
-  },
-]
+])
 
-const { topic, emotion } = await prompts(questions)
+const response = await overallChain.invoke({ topic })
+console.log(response.content)
 ```
 
-Dan sekarang Anda memiliki dua input untuk rantai kedua: `title` dan `emotion`.
+Dan Anda selesai. Jika Anda menjalankan aplikasi dan meminta `topic`, Anda akan mendapatkan respons yang mirip dengan ini:
 
-Pastikan bahwa overallChain dideklarasikan di bawah baris await `prompts()`.
+Gambar 27. Hasil Rantai Berurutan Sederhana
 
-## Format Variabel Output
+Ada beberapa paragraf yang dipotong dari hasil di atas, tetapi Anda sudah dapat melihat bahwa prompt firstChain menghasilkan variabel judul yang digunakan oleh prompt secondChain.
 
-Rantai berurutan biasanya juga melacak banyak variabel output.
+Dengan menggunakan rantai berurutan sederhana, Anda dapat memecah tugas kompleks menjadi urutan tugas yang lebih kecil, meningkatkan akurasi hasil LLM.
 
-Untuk melacak banyak variabel output, Anda dapat menggunakan StructuredOutputParser dari LangChain untuk memformat output sebagai objek JSON.
+## Menggunakan Beberapa LLM dalam Rantai Berurutan
 
-Pertama, impor parser dari LangChain:
+Anda juga dapat menetapkan LLM yang berbeda untuk setiap rantai yang Anda buat menggunakan LCEL.
+
+Kode contoh berikut menjalankan rantai pertama menggunakan Google Gemini, sementara rantai kedua menggunakan OpenAI GPT:
 
 ```javascript
-import { StringOutputParser, StructuredOutputParser } from "@langchain/core/output_parsers"
+const llm = new ChatOpenAI({
+  model: "gpt-4o",
+  apiKey: process.env.OPENAI_KEY,
+})
+
+const llm2 = new ChatGoogleGenerativeAI({
+  model: "gemini-2.5-flash",
+  apiKey: process.env.GOOGLE_GEMINI_KEY,
+})
 ```
 
-Selanjutnya, buat parser yang berisi skema output sebagai objek.
+![Gambar dari halaman PDF 67](images/page_67_img_0_X19.jpg)
 
-Misalkan Anda ingin menampilkan nilai judul, emosi, dan esai dalam respons.
-
-Panggil metode `StructuredOutputParser.fromNamesAndDescriptions()` dan berikan skema sebagai berikut:
+// Gunakan LLM yang berbeda untuk setiap rantai:
 
 ```javascript
 const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
+const secondChain = essayPrompt.pipe(llm2)
+```
 
-const structuredParser = StructuredOutputParser.fromNamesAndDescriptions({
-  title: "judul esai",
-  emotion: "emosi yang disampaikan oleh esai",
-  essay: "konten esai",
+Karena LCEL bersifat deklaratif, Anda dapat dengan mudah menukar komponen dalam rantai.
+
+## Debugging Rantai Berurutan
+
+Jika Anda ingin melihat proses rantai berurutan secara lebih detail, Anda dapat mengaktifkan mode debug saat membuat objek llm:
+
+```javascript
+const llm = new ChatOpenAI({
+  model: "gpt-4o",
+  apiKey: process.env.OPENAI_KEY,
+  debug: true,
 })
 ```
 
-Setelah itu, masukkan parser ke dalam secondChain sebagai berikut:
+Ketika Anda menjalankan ulang aplikasi, Anda akan melihat output debug di terminal.
 
-```javascript
-const secondChain = essayPrompt.pipe(llm).pipe(structuredParser)
+Anda dapat melihat prompt yang dikirim oleh LangChain ke LLM dengan mencari log [llm/start] sebagai berikut:
+
+```
+[llm/start] [1:llm:ChatOpenAI] Memasuki run LLM dengan input: {
+// ...
+}
 ```
 
-Sekarang LLM diinstruksikan untuk mengurai output menggunakan `structuredParser`.
+Untuk melihat output, Anda perlu mencari log [llm/end].
 
-Dalam `essayPrompt`, perbarui kedua parameter inputVariables dan template untuk menyertakan input `format_instructions`:
+Jika Anda mencari input rantai kedua, Anda akan melihat prompt yang didefinisikan sebagai berikut:
 
-```javascript
-const essayPrompt = new PromptTemplate({
-  inputVariables: ["title", "emotion", "format_instructions"],
-  template: `
-  Anda adalah penulis nonfiksi ahli.
+```
+[llm/start] [1:llm:ChatOpenAI] Memasuki run LLM dengan input: {
+"messages": [
+[
 
-    Anda perlu menulis esai pendek 350 kata untuk judul berikut:
+      {
+        "lc": 1,
+        "type": "constructor",
+        "id": [
+          "langchain_core",
+          "messages",
+          "HumanMessage"
+        ],
+        "kwargs": {
+          "content": "\n  Anda adalah penulis nonfiksi ahli.\n\n    Anda perlu menulis esai pendek 350 kata untuk judul berikut:\n\n    \"Living with Giants: Unraveling the Mysteries of Bears\"\n\n    Pastikan esai menarik dan membuat pembaca merasa bersemangat.\n  ",
+          "additional_kwargs": {},
+          "response_metadata": {}
+        }
+      }
+    ]
 
-    {title}
-
-    Pastikan esai menarik dan membuat pembaca merasa {emotion}.
-
-    {format_instructions}
-  `,
-})
+}
+}
 ```
 
-Untuk langkah terakhir, berikan input `format_instructions` dengan memanggil metode `structuredParser.getFormatInstructions()` saat membuat objek `overallChain`:
+Input untuk prompt kedua diformat sebagai string karena kita menggunakan StrOutputParser() untuk rantai pertama.
 
-```javascript
-const overallChain = firstChain
-  .pipe((result) => ({
-    title: result,
-    emotion,
-    format_instructions: structuredParser.getFormatInstructions(),
-  }))
-  .pipe(secondChain)
+Jika Anda tidak mengurai output dari rantai pertama, maka prompt rantai kedua akan terlihat seperti ini:
+
+```
+"kwargs": {
+"content": "\n Anda adalah penulis nonfiksi ahli.\n\n Anda perlu menulis esai pendek 350 kata untuk judul berikut:\n\n [object Object]\n\n Pastikan esai menarik dan membuat pembaca merasa bersemangat.\n ",
+}
 ```
 
-Metode `getFormatInstructions()` mengembalikan string yang berisi instruksi dan skema JSON. Anda dapat melihat string tersebut dengan memanggil `console.log()` jika ingin:
+Perhatikan bahwa respons disematkan ke dalam string sebagai [object Object], jadi LLM mungkin salah memahami permintaan.
 
-```javascript
-console.log(structuredParser.getFormatInstructions())
-```
+Dalam kasus GPT, ia memberi tahu Anda dalam respons:
 
-Sekarang Anda dapat menjalankan aplikasi dan memberikan input judul dan emosi untuk esai. LLM akan mengembalikan objek JavaScript:
+Maaf, sepertinya ada kesalahan dalam judul yang diberikan.
 
-Gambar 29. Menerima Output JSON
+Mari asumsikan topik yang menarik untuk melanjutkan.
 
-Jika Anda ingin menulis setiap variabel output, Anda dapat mengakses propertinya secara langsung sebagai berikut:
+Bagaimana dengan judul ini: "Keajaiban Komputasi Kuantum"?
 
-```javascript
-const response = await overallChain.invoke({
-  topic,
-})
-console.log(response.title)
-console.log(response.emotion)
-console.log(response.essay)
-```
+Dalam kasus saya, saya meminta GPT untuk menulis esai tentang beruang, dan ia secara acak menyarankan judul berdasarkan data pelatihannya.
 
-Sekarang Anda memiliki rantai berurutan yang melacak banyak input dan output. Sangat bagus!
+Untuk meminimalkan jenis respons yang tidak diinginkan ini, Anda perlu mengurai output dari rantai pertama menggunakan parser LangChain.
 
-![Gambar dari halaman PDF 77](images/page_77_img_0_X19.jpg)
+Kita akan menggunakan parser lain di bab berikutnya.
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder 08_Sequential_Chain dari kode sumber buku.
+Kode untuk bab ini tersedia di folder 07_LCEL dari kode sumber buku.
 
-Ketika Anda membuat rantai berurutan, Anda dapat menambahkan input tambahan ke rantai berikutnya yang tidak berasal dari rantai sebelumnya.
+Dalam bab ini, Anda telah mempelajari tentang Bahasa Ekspresi LangChain, yang dapat digunakan untuk menyusun komponen LangChain secara deklaratif.
 
-Anda juga dapat memformat output sebagai objek JSON untuk membuat respons lebih terorganisir dan lebih mudah diproses.
+Rantai hanyalah pembungkus untuk komponen LangChain ini:
+
+1. Template prompt
+
+2. LLM yang akan digunakan
+
+3. Parser untuk memproses output dari LLM
+
+Komponen rantai dapat dipertukarkan, artinya Anda dapat menggunakan model GPT untuk prompt pertama, dan kemudian menggunakan model Gemini untuk prompt kedua, seperti yang ditunjukkan di atas.
+
+Dengan menggunakan LCEL, Anda dapat membuat alur kerja yang canggih dan berinteraksi dengan Model Bahasa Besar untuk menyelesaikan tugas yang kompleks.
