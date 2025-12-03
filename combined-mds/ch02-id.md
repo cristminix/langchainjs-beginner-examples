@@ -180,12 +180,12 @@ Ini berarti Anda telah berhasil membuat aplikasi LangChain pertama Anda dan beri
 
 Setiap model LLM memiliki karakteristiknya sendiri. Model 'gemini-2.5-flash' biasanya menjawab pertanyaan secara langsung tanpa informasi tambahan.
 
-Anda dapat mencoba mengganti model menjadi 'gemini-1.5-flash-latest' seperti yang ditunjukkan di bawah ini:
+Anda dapat mencoba mengganti model menjadi 'gemini-2.5-flash' seperti yang ditunjukkan di bawah ini:
 
 ```JavaScript
 
 const llm = new ChatGoogleGenerativeAI({
-    model: 'gemini-1.5-flash-latest',
+    model: 'gemini-2.5-flash',
     apiKey: process.env.GOOGLE_GEMINI_KEY,
 });
 ```
@@ -199,7 +199,7 @@ Pertanyaan: Apa mata uang Thailand?
 Jawaban: Mata uang Thailand adalah **Baht Thailand**, yang disingkat menjadi **THB**.
 ```
 
-Di sini, `'gemini-1.5-flash'` mengulangi pertanyaan terlebih dahulu, kemudian memberikan informasi lebih lanjut seperti singkatan mata uang dan simbol.
+Di sini, `'gemini-2.5-flash'` mengulangi pertanyaan terlebih dahulu, kemudian memberikan informasi lebih lanjut seperti singkatan mata uang dan simbol.
 
 Simbol asterisk \*\* di sekitar THB dimaksudkan untuk membuat teks muncul tebal, tetapi dirender apa adanya di terminal.
 
@@ -215,7 +215,7 @@ Error ini terjadi karena sumber daya tier gratis telah habis. Anda perlu mencoba
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder `02_Simple_Q&A_Gemini`.
+Kode untuk bab ini tersedia di folder `src/02_Simple_QA_Gemini`.
 
 Di bab ini, Anda telah membuat dan menjalankan aplikasi LangChain pertama Anda. Selamat!
 
