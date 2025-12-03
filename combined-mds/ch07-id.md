@@ -54,11 +54,11 @@ Rantai berurutan sederhana adalah di mana setiap langkah dalam rantai memiliki s
 
 Gambar 26. Ilustrasi Rantai Berurutan Sederhana
 
+![Gambar dari halaman PDF 64](images/page_64_img_0_X11.jpg)
+
 Sebagai contoh, misalkan Anda ingin membuat aplikasi yang dapat menulis esai pendek.
 
 Anda akan memberikan topik, dan LLM pertama-tama akan memutuskan judul, dan kemudian melanjutkan dengan menulis esai untuk topik tersebut.
-
-![Gambar dari halaman PDF 64](images/page_64_img_0_X11.jpg)
 
 Untuk membuat aplikasi, Anda perlu membuat prompt untuk judul terlebih dahulu:
 
@@ -142,6 +142,8 @@ Dan Anda selesai. Jika Anda menjalankan aplikasi dan meminta `topic`, Anda akan 
 
 Gambar 27. Hasil Rantai Berurutan Sederhana
 
+![Gambar dari halaman PDF 67](images/page_67_img_0_X19.jpg)
+
 Ada beberapa paragraf yang dipotong dari hasil di atas, tetapi Anda sudah dapat melihat bahwa prompt firstChain menghasilkan variabel judul yang digunakan oleh prompt secondChain.
 
 Dengan menggunakan rantai berurutan sederhana, Anda dapat memecah tugas kompleks menjadi urutan tugas yang lebih kecil, meningkatkan akurasi hasil LLM.
@@ -164,11 +166,8 @@ const llm2 = new ChatGoogleGenerativeAI({
 })
 ```
 
-![Gambar dari halaman PDF 67](images/page_67_img_0_X19.jpg)
-
-// Gunakan LLM yang berbeda untuk setiap rantai:
-
 ```javascript
+// Gunakan LLM yang berbeda untuk setiap rantai:
 const firstChain = titlePrompt.pipe(llm).pipe(new StringOutputParser())
 const secondChain = essayPrompt.pipe(llm2)
 ```
@@ -197,7 +196,7 @@ Anda dapat melihat prompt yang dikirim oleh LangChain ke LLM dengan mencari log 
 }
 ```
 
-Untuk melihat output, Anda perlu mencari log [llm/end].
+Untuk melihat output, Anda perlu mencari log `[llm/end]`.
 
 Jika Anda mencari input rantai kedua, Anda akan melihat prompt yang didefinisikan sebagai berikut:
 
@@ -230,7 +229,7 @@ Input untuk prompt kedua diformat sebagai string karena kita menggunakan StrOutp
 
 Jika Anda tidak mengurai output dari rantai pertama, maka prompt rantai kedua akan terlihat seperti ini:
 
-```
+```json
 "kwargs": {
 "content": "\n Anda adalah penulis nonfiksi ahli.\n\n Anda perlu menulis esai pendek 350 kata untuk judul berikut:\n\n [object Object]\n\n Pastikan esai menarik dan membuat pembaca merasa bersemangat.\n ",
 }

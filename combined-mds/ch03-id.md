@@ -22,13 +22,15 @@ Saat Anda mencoba membuat kunci untuk pertama kali, Anda akan diminta verifikasi
 
 Gambar 12. Verifikasi Telepon OpenAI
 
+![Gambar dari halaman PDF 34](images/page_34_img_0_X8.jpg)
+
 OpenAI hanya menggunakan nomor telepon Anda untuk keperluan verifikasi. Anda akan menerima kode verifikasi melalui SMS.
 
 Setelah terverifikasi, Anda akan diminta untuk menambahkan saldo kredit untuk penggunaan API. Jika tidak, buka https://platform.openai.com/account/billing untuk menambahkan beberapa kredit.
 
-![Gambar dari halaman PDF 34](images/page_34_img_0_X8.jpg)
-
 Gambar 13. OpenAI Menambahkan Kredit
+
+![Gambar dari halaman PDF 35](images/page_35_img_0_X15.jpg)
 
 OpenAI menerima pembayaran menggunakan kartu kredit, jadi Anda perlu memilikinya. Jumlah terendah yang dapat Anda beli adalah $5 USD, dan itu sudah lebih dari cukup untuk menjalankan semua contoh di buku ini menggunakan OpenAI.
 
@@ -36,15 +38,15 @@ Alternatifnya, jika Anda mendapatkan kredit uji coba gratis $5, maka Anda tidak 
 
 Selanjutnya, masukkan nama dan pilih proyek yang akan dimiliki kunci:
 
-![Gambar dari halaman PDF 35](images/page_35_img_0_X15.jpg)
-
 Gambar 14. OpenAI Membuat Kunci API
-
-Klik tombol 'Create secret key', dan OpenAI akan menunjukkan kunci yang dihasilkan:
 
 ![Gambar dari halaman PDF 36](images/page_36_img_0_X18.jpg)
 
+Klik tombol 'Create secret key', dan OpenAI akan menunjukkan kunci yang dihasilkan:
+
 Gambar 15. OpenAI Menyalin Kunci API
+
+![Gambar dari halaman PDF 37](images/page_37_img_0_X21.jpg)
 
 Anda perlu menyalin dan menempelkan kunci API ini ke file .env proyek Anda:
 
@@ -59,8 +61,6 @@ Untuk menggunakan OpenAI di LangChain, Anda perlu menginstal paket `@langchain/o
 `npm install @langchain/openai`
 
 Setelah paket terinstal, buat file baru bernama app_gpt.js dan impor kelas ChatOpenAI dari paket tersebut.
-
-![Gambar dari halaman PDF 37](images/page_37_img_0_X21.jpg)
 
 Saat menginstansiasi objek llm, tentukan opsi model dan openAIApiKey seperti yang ditunjukkan di bawah ini:
 

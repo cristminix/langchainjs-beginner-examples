@@ -8,6 +8,8 @@ Berikut ilustrasi proses yang diperlukan untuk membuat aplikasi Chat With Docume
 
 Gambar 37. Proses Aplikasi Chat With Document
 
+![](images/page_97_img_0_X8.jpg)
+
 Pertama-tama Anda perlu membagi satu dokumen menjadi potongan-potongan (chunks) agar dokumen dapat diproses dan diindeks secara efektif. Potongan tersebut kemudian diubah menjadi embedding vektor.
 
 Embedding vektor adalah larik angka yang merepresentasikan informasi berbagai jenis, termasuk teks, gambar, audio, dan lainnya, dengan menangkap fitur-fitur mereka dalam format numerik.

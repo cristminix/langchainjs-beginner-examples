@@ -36,7 +36,7 @@ Sekarang Anda hanya perlu memberikan nama negara untuk mendapatkan informasi mat
 
 Meskipun Anda dapat menggunakan template string seperti di atas, LangChain merekomendasikan Anda menggunakan kelas template prompt untuk penggunaan ulang yang efektif. Mari saya tunjukkan caranya.
 
-Membuat Template Prompt
+## Membuat Template Prompt
 
 Untuk membuat template prompt, Anda perlu mengimpor kelas `PromptTemplate` dari `@langchain/core/prompts` seperti di bawah:
 

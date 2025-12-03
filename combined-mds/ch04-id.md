@@ -14,23 +14,23 @@ Dari sana, Anda dapat memilih versi untuk Sistem Operasi Anda:
 
 Gambar 16. Mengunduh Ollama
 
-Setelah diunduh, buka paketnya dan ikuti instruksi sampai Anda diminta untuk menginstal alat command line sebagai berikut:
-
 ![Image from PDF page 42](images/page_42_img_0_X9.jpg)
 
+Setelah diunduh, buka paketnya dan ikuti instruksi sampai Anda diminta untuk menginstal alat command line sebagai berikut:
+
 Gambar 17. Menginstal Perintah Terminal Ollama
+
+![Image from PDF page 43](images/page_43_img_0_X13.jpg)
 
 Silakan klik tombol 'Install'.
 
 Setelah instalasi selesai, Ollama akan menunjukkan cara menjalankan model:
 
-![Image from PDF page 43](images/page_43_img_0_X13.jpg)
-
 Gambar 18. Ollama Menjalankan Model Pertama Anda
 
-Tapi karena Llama 3 adalah model dengan 8 miliar parameter, ukuran model cukup besar yaitu 4,7 GB.
-
 ![Image from PDF page 44](images/page_44_img_0_X16.jpg)
+
+Tapi karena Llama 3 adalah model dengan 8 miliar parameter, ukuran model cukup besar yaitu 4,7 GB.
 
 Saya menyarankan Anda menjalankan model Gemma sebagai gantinya, yang memiliki 2 miliar parameter:
 
@@ -46,13 +46,15 @@ Setelah pengunduhan selesai, Anda dapat langsung menggunakan model dari terminal
 
 Gambar 19. Contoh Menanyakan Gemma di Ollama
 
+![Image from PDF page 45](images/page_45_img_0_X20.jpg)
+
 Untuk keluar dari model yang sedang berjalan, ketik /bye dan tekan Enter.
 
 Selama Ollama berjalan di komputer Anda, endpoint API Ollama dapat diakses di localhost:11434 seperti yang ditunjukkan di bawah ini:
 
-![Image from PDF page 45](images/page_45_img_0_X20.jpg)
-
 Gambar 20. Endpoint API Lokal Ollama
+
+![Image from PDF page 46](images/page_46_img_0_X23.jpg)
 
 LangChain akan menggunakan endpoint API ini untuk berkomunikasi dengan model Ollama, yang akan kita lakukan selanjutnya.
 
@@ -65,8 +67,6 @@ Dari terminal, instal paket komunitas menggunakan npm sebagai berikut:
 ```
 npm install @langchain/community
 ```
-
-![Image from PDF page 46](images/page_46_img_0_X23.jpg)
 
 Selanjutnya, buat file baru bernama app_ollama.py dan impor model chat Ollama seperti yang ditunjukkan di bawah ini:
 

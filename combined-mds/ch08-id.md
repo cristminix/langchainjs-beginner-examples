@@ -148,6 +148,8 @@ Sekarang Anda dapat menjalankan aplikasi dan memberikan input judul dan emosi un
 
 Gambar 29. Menerima Output JSON
 
+![Gambar dari halaman PDF 77](images/page_77_img_0_X19.jpg)
+
 Jika Anda ingin menulis setiap variabel output, Anda dapat mengakses propertinya secara langsung sebagai berikut:
 
 ```javascript
@@ -160,8 +162,6 @@ console.log(response.essay)
 ```
 
 Sekarang Anda memiliki rantai berurutan yang melacak banyak input dan output. Sangat bagus!
-
-![Gambar dari halaman PDF 77](images/page_77_img_0_X19.jpg)
 
 ## Ringkasan
 

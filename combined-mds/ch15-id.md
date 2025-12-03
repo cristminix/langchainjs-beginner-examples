@@ -270,6 +270,7 @@ if (messages.length === 0) {
 ```
 
 Ketika panjang array messages adalah nol, sebuah Gambar dan teks akan ditampilkan kepada pengguna seperti ini:
+
 ![Image from PDF page 136](images/page_136_img_0_X31.jpg)
 
 Tepat di bawah pernyataan if, tulis pernyataan return lain untuk menampilkan pesan yang ada:

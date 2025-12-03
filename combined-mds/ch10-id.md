@@ -10,7 +10,9 @@ Berikut ilustrasi untuk membantu Anda memahami konsep agen:
 
 Gambar 31. Ilustrasi Agen LLM
 
-Tidak semua LLM mampu membuat agen, jadi model canggih seperti GPT-4, Gemini 1.5 Pro, atau Mistral diperlukan.
+![Image from PDF page 86](images/page_86_img_0_X8.jpg)
+
+Tidak semua LLM mampu membuat agen, jadi model canggih seperti GPT-4, Gemini 2.5 Pro, atau Mistral diperlukan.
 
 Mari saya tunjukkan cara membuat agen menggunakan LangChain selanjutnya.
 
@@ -25,11 +27,6 @@ import { AgentExecutor, createReactAgent } from "langchain/agents"
 import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search"
 import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_run"
 import { Calculator } from "@langchain/community/tools/calculator"
-```
-
-![Image from PDF page 86](images/page_86_img_0_X8.jpg)
-
-```javascript
 import "dotenv/config"
 import prompts from "prompts"
 ```
@@ -79,17 +76,17 @@ const agentExecutor = new AgentExecutor({
 
 Ada tiga alat yang kami sediakan untuk agen:
 
-1. wikipedia untuk mengakses dan meringkas artikel Wikipedia
-2. ddgSearch untuk mencari di internet menggunakan mesin pencari DuckDuckGo
-3. calculator untuk menghitung persamaan matematika
+1. `wikipedia` untuk mengakses dan meringkas artikel Wikipedia
+2. `ddgSearch` untuk mencari di internet menggunakan mesin pencari DuckDuckGo
+3. `calculator` untuk menghitung persamaan matematika
 
 Untuk menjalankan alat pencarian DuckDuckGo, Anda perlu menginstal paket duck-duck-scrape menggunakan npm:
 
 `npm install duck-duck-scrape`
 
-Alat lainnya sudah tersedia dari modul @langchain/community.
+Alat lainnya sudah tersedia dari modul `@langchain/community`.
 
-Setelah instalasi selesai, lengkapi agen dengan menambahkan prompt pertanyaan dan panggil metode invoke():
+Setelah instalasi selesai, lengkapi agen dengan menambahkan prompt pertanyaan dan panggil metode `invoke()`:
 
 ```javascript
 const { question } = await prompts([
@@ -109,19 +106,21 @@ Agen AI sekarang selesai. Anda dapat menjalankan agen menggunakan Node.js sebaga
 
 `node react_agent.js`
 
-Sekarang berikan tugas untuk diselesaikan agen, seperti 'Siapa presiden pertama Amerika?'
+Sekarang berikan tugas untuk diselesaikan agen, seperti '`Siapa presiden pertama Amerika?`'
 
-Karena parameter verbose disetel true di AgentExecutor, Anda akan melihat penalaran dan tindakan yang diambil oleh LLM:
+Karena parameter verbose disetel true di `AgentExecutor`, Anda akan melihat penalaran dan tindakan yang diambil oleh LLM:
 
 Gambar 32. Agen LLM Berpikir dan Melakukan Tindakan
+
+![Image from PDF page 89](images/page_89_img_0_X19.jpg)
 
 LLM akan mengambil tindakan menggunakan agen yang telah kita buat untuk mencari jawaban akhir.
 
 Log berikut menunjukkan pemikiran yang dilakukan oleh LLM:
 
-![Image from PDF page 89](images/page_89_img_0_X19.jpg)
-
 Gambar 33. Agen LLM Selesai
+
+![Image from PDF page 90](images/page_90_img_0_X22.jpg)
 
 Setelah agen selesai berjalan, ia akan mengembalikan objek dengan dua properti: input dan output seperti yang ditunjukkan di bawah:
 
@@ -157,8 +156,6 @@ Jawaban Akhir: Hari Kemerdekaan Amerika adalah pada 4 Juli.
 
 Karena jawaban sudah ada dalam data pelatihannya, LLM memutuskan untuk menjawab langsung.
 
-![Image from PDF page 90](images/page_90_img_0_X22.jpg)
-
 Mengajukan Pertanyaan Berbeda kepada Agen
 
 Anda sekarang dapat mengajukan berbagai jenis pertanyaan untuk melihat apakah LLM cukup pintar untuk menggunakan alat yang tersedia.
@@ -167,9 +164,13 @@ Jika Anda bertanya 'Siapa Perdana Menteri Singapura saat ini?', LLM seharusnya m
 
 Gambar 34. Agen LLM Melakukan Pencarian
 
+![Image from PDF page 91](images/page_91_img_0_X26.jpg)
+
 Jika Anda bertanya pertanyaan matematika seperti 'Ambil 5 pangkat 2 lalu kalikan dengan jumlah enam dan tiga', agen seharusnya menggunakan alat kalkulator:
 
 Gambar 35. Agen LLM Melakukan Matematika
+
+![Image from PDF page 91](images/page_91_img_1_X27.jpg)
 
 LLM terbaru cukup pintar untuk memahami maksud pertanyaan dan memilih alat yang tepat untuk pekerjaan tersebut.
 
@@ -179,19 +180,15 @@ Agen AI hanya dapat menggunakan alat yang Anda tambahkan saat Anda membuat agen.
 
 Daftar alat yang disediakan oleh LangChain dapat ditemukan di https://js.langchain.com/v0.2/docs/integrations/tools.
 
-![Image from PDF page 91](images/page_91_img_0_X26.jpg)
-
-![Image from PDF page 91](images/page_91_img_1_X27.jpg)
-
 Namun, beberapa alat seperti Calculator dan BingSerpAPI tidak terdaftar di halaman integrasi di atas, jadi Anda perlu menyelami kode sumber paket komunitas LangChain untuk menemukan semua alat yang tersedia.
 
 Cukup buka folder node_modules/@langchain/community/tools, lalu masuk ke folder tools, dan Anda akan melihat semua alat di sana:
 
 Gambar 36. Alat Tersedia untuk Agen LLM
 
-Anda dapat melihat alat lain seperti pencarian Google dan Bing di sini, tetapi alat-alat ini memerlukan kunci API untuk dijalankan.
-
 ![Image from PDF page 93](images/page_93_img_0_X33.jpg)
+
+Anda dapat melihat alat lain seperti pencarian Google dan Bing di sini, tetapi alat-alat ini memerlukan kunci API untuk dijalankan.
 
 ## Jenis-jenis Agen AI
 
@@ -205,7 +202,7 @@ Seiring LLM dan LangChain meningkat, jenis agen baru mungkin dibuat, sehingga de
 
 ## Ringkasan
 
-Kode untuk bab ini tersedia di folder 10_Agents_and_Tools dari kode sumber buku.
+Kode untuk bab ini tersedia di folder `10_Agents_and_Tools` dari kode sumber buku.
 
 Meskipun kita belum memiliki asisten robot otonom (masih) di dunia kita saat ini, kita sudah dapat melihat bagaimana pengembangan agen AI suatu hari nanti dapat digunakan sebagai otak robot AI.
 

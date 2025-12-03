@@ -4,9 +4,10 @@ Sejauh ini, LLM mengambil pertanyaan yang kita ajukan dan memberikan jawaban yan
 
 Kembali ke aplikasi tanya jawab sederhana di Bab 5, Anda dapat mencoba mengajukan pertanyaan kepada LLM seperti:
 
+```
 1. Kapan Piala Dunia FIFA terakhir diadakan?
-
 2. Kalikan tahunnya dengan 2
+```
 
 Pada saat penulisan ini, Piala Dunia FIFA terakhir diadakan pada tahun 2022. Membaca prompt kedua di atas, kita dapat memahami bahwa 'tahun' merujuk pada '2022'.
 
@@ -15,6 +16,8 @@ Namun, karena LLM tidak memiliki kesadaran tentang interaksi sebelumnya, jawaban
 Dengan GPT, LLM merujuk pada tahun saat ini alih-alih tahun Piala Dunia FIFA terakhir:
 
 Gambar 30. Contoh LLM Keluar dari Konteks
+
+![Gambar dari halaman PDF 80](images/page_80_img_0_X8.jpg)
 
 LLM tidak dapat memahami bahwa kita memberikan instruksi tindak lanjut untuk pertanyaan sebelumnya.
 
@@ -40,8 +43,6 @@ const chatTemplate = ChatPromptTemplate.fromMessages([
   ["human", "{input}"],
 ])
 ```
-
-![Gambar dari halaman PDF 80](images/page_80_img_0_X8.jpg)
 
 Pada contoh di atas, pesan dikaitkan dengan peran `'system'`, `'human'`, dan `'ai'`. Pesan `'system'` digunakan untuk mempengaruhi perilaku AI.
 
@@ -163,7 +164,7 @@ Anda akan melihat riwayat obrolan diteruskan saat Anda menjalankan pertanyaan ke
 }
 ```
 
-Pesan-pesan sebelumnya ini disuntikkan oleh rantai chainWithHistory ke dalam prompt.
+Pesan-pesan sebelumnya ini disuntikkan oleh rantai `chainWithHistory` ke dalam prompt.
 
 ## Ringkasan
 

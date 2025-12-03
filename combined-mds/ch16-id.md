@@ -293,13 +293,13 @@ npm run build
 
 Setelah proses build selesai, Anda akan melihat output seperti ini:
 
+![Image from PDF page 155](images/page_155_img_0_X27.jpg)
+
 Hasil di atas menunjukkan ukuran aplikasi yang dikompilasi, yang berarti build berhasil.
 
 ## Mendorong Kode ke GitHub
 
 Menyebarluaskan aplikasi memerlukan Anda memberikan akses ke file dan folder proyek. GitHub adalah platform yang dapat Anda gunakan
-
-![Image from PDF page 155](images/page_155_img_0_X27.jpg)
 
 untuk menghosting dan berbagi proyek perangkat lunak Anda.
 
@@ -309,13 +309,15 @@ Kunjungi https://github.com dan daftar untuk akun baru. Dari dashboard, buat rep
 
 Gambar 40. Dua Cara Membuat Repositori di GitHub
 
+![Image from PDF page 156](images/page_156_img_0_X30.jpg)
+
 Repositori (atau repo) adalah ruang penyimpanan yang digunakan untuk menyimpan file proyek perangkat lunak.
 
 Di halaman Create a Repository, isi detail proyek Anda. Satu-satunya detail yang diperlukan adalah nama repositori.
 
 Saya menamai milik saya sebagai 'nextjs-langchain' seperti yang ditunjukkan di bawah ini:
 
-![Image from PDF page 156](images/page_156_img_0_X30.jpg)
+![Image from PDF page 157](images/page_157_img_0_X35.jpg)
 
 Anda dapat membuat repositori publik jika Anda ingin proyek ini sebagai bagian dari portofolio Anda, atau Anda dapat membuatnya privat.
 
@@ -325,11 +327,9 @@ Satu instruksi yang Anda butuhkan adalah mendorong repo yang sudah ada dari bari
 
 Gambar 41. Cara Mendorong Repo yang Sudah Ada ke GitHub
 
-Sekarang Anda perlu membuat repositori untuk proyek Anda. Buka baris perintah, dan di folder root proyek Anda, jalankan perintah
-
-![Image from PDF page 157](images/page_157_img_0_X35.jpg)
-
 ![Image from PDF page 157](images/page_157_img_1_X36.jpg)
+
+Sekarang Anda perlu membuat repositori untuk proyek Anda. Buka baris perintah, dan di folder root proyek Anda, jalankan perintah
 
 git init:
 
@@ -365,6 +365,8 @@ Setelah push selesai, segarkan halaman repo GitHub di browser, dan Anda akan mel
 
 Gambar 42. Proyek Didorong ke GitHub
 
+![Image from PDF page 159](images/page_159_img_0_X41.jpg)
+
 Ini berarti aplikasi kita sudah didorong (diunggah) ke repositori remote yang dihosting di GitHub.
 
 ## Penyebarluasan Vercel
@@ -375,35 +377,34 @@ Tetapi platform pengembangan terbaik untuk menyebarluaskan aplikasi Next.js adal
 
 Vercel adalah perusahaan hosting cloud yang dapat Anda gunakan untuk membangun dan menyebarluaskan aplikasi web ke internet. Ini juga sama
 
-![Image from PDF page 159](images/page_159_img_0_X41.jpg)
-
 perusahaan yang menciptakan Next.js, jadi menyebarluaskan aplikasi Next di Vercel sangat mudah.
 
 Anda dapat mendaftar untuk akun gratis di https://vercel.com, lalu pilih Create New Project di halaman Dashboard:
 
 Gambar 43. Vercel Create New Project
+![Image from PDF page 160](images/page_160_img_0_X44.jpg)
 
 Selanjutnya, Anda akan diminta untuk memberikan proyek yang ingin Anda bangun dan sebarluaskan.
 
 Karena proyek diunggah ke GitHub, Anda dapat memilih Continue With Github seperti yang ditunjukkan di bawah ini:
 
-![Image from PDF page 160](images/page_160_img_0_X44.jpg)
-
 Gambar 44. Vercel Import Repository Menu
-
-Setelah Anda memberikan akses ke akun GitHub Anda, pilih proyek yang akan disebarluaskan. Anda dapat menggunakan bilah pencarian untuk menyaring repositori:
 
 ![Image from PDF page 161](images/page_161_img_0_X48.jpg)
 
+Setelah Anda memberikan akses ke akun GitHub Anda, pilih proyek yang akan disebarluaskan. Anda dapat menggunakan bilah pencarian untuk menyaring repositori:
+
 Gambar 45. Vercel GitHub Import
+
+![Image from PDF page 162](images/page_162_img_0_X51.jpg)
 
 Kemudian, Anda akan dibawa ke halaman penyiapan proyek. Klik tombol Deploy dan Vercel akan membangun aplikasi untuk Anda.
 
 Ketika build selesai, Anda akan ditampilkan halaman sukses sebagai berikut:
 
-![Image from PDF page 162](images/page_162_img_0_X51.jpg)
-
 Gambar 46. Vercel Congratulations! Page
+
+![Image from PDF page 163](images/page_163_img_0_X54.jpg)
 
 Anda dapat mengklik pratinjau gambar untuk membuka aplikasi Anda. Aplikasi akan diberikan domain .vercel.app gratis. Anda dapat menambahkan domain sendiri dari pengaturan Vercel.
 
@@ -414,8 +415,6 @@ Penyebarluasan selesai. Hore!
 Kode untuk bab ini tersedia di folder 16_nextjs_langchain_prod dalam kode sumber buku.
 
 Anda telah berhasil menyebarluaskan aplikasi Next.js ke internet. Kerja bagus!
-
-![Image from PDF page 163](images/page_163_img_0_X54.jpg)
 
 Karena model AI dapat diakses menggunakan protokol HTTP, Anda perlu memastikan bahwa kunci API untuk mengakses model ditambahkan ke aplikasi.
 

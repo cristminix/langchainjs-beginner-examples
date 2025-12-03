@@ -1,4 +1,4 @@
-PENUTUP
+# PENUTUP
 
 Selamat telah menyelesaikan buku ini! Kita telah melalui banyak konsep dan topik bersama untuk membantu Anda mempelajari cara mengembangkan aplikasi berbasis AI menggunakan LangChain, Next.js, dan LLM seperti GPT, Gemini, dan Ollama.
 
@@ -18,13 +18,13 @@ Sampai jumpa lagi,
 
 Nathan
 
-TENTANG PENULIS
+## TENTANG PENULIS
 
 Nathan Sebhastian adalah senior software developer dengan pengalaman lebih dari 8 tahun dalam mengembangkan aplikasi web dan mobile.
 
 Dia memiliki passion untuk membuat pendidikan teknologi dapat diakses oleh semua orang dan telah mengajar online sejak tahun 2018.
 
-LangChainJS Untuk Pemula
+## LangChainJS Untuk Pemula
 
 Panduan Langkah-demi-Langkah Pengembangan Aplikasi AI Dengan LangChain, JavaScript/NextJS, OpenAI/ChatGPT dan LLM Lainnya
 

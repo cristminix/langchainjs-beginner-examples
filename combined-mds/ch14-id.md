@@ -170,6 +170,8 @@ Saya menggunakan gambar dari `https://g.codewithnathan.com/lc-image` untuk conto
 
 Gambar 39. Hasil Obrolan Dengan Gambar
 
+![Gambar dari halaman PDF 123](images/page_123_img_0_X17.jpg)
+
 Coba tanyakan detail tertentu, seperti berapa banyak orang yang dapat Anda lihat pada gambar, atau warna apa yang dominan pada gambar.
 
 ## Pesan Multimodal Ollama
@@ -179,8 +181,6 @@ Jika Anda ingin mengirim pesan multimodal ke Ollama, Anda perlu mengunduh model 
 Anda dapat menjalankan perintah `ollama pull bakllava` untuk mengunduh model ke mesin Anda. Perhatikan bahwa kedua model membutuhkan RAM 8GB untuk berjalan tanpa masalah.
 
 Untuk mengirim pesan multimodal ke Ollama, Anda perlu memastikan bahwa kunci `image_url` memiliki nilai string sebagai berikut:
-
-![Gambar dari halaman PDF 123](images/page_123_img_0_X17.jpg)
 
 ```javascript
 ['human',

@@ -43,11 +43,11 @@ Jika Anda menjalankan aplikasi sekarang, Anda dapat mengetik pertanyaan di termi
 
 Gambar 21. Input Pengguna Di Terminal
 
+![Image from PDF page 51](images/page_51_img_0_X9.jpg)
+
 Dengan ini, Anda dapat menanyakan berbagai jenis pertanyaan tanpa perlu mengganti variabel `question` setiap kali.
 
 Anda juga dapat mengizinkan pengguna untuk mengobrol dengan LLM hingga pengguna mengetik `/bye` di terminal.
-
-![Image from PDF page 51](images/page_51_img_0_X9.jpg)
 
 Bungkus prompt input pengguna dalam loop while seperti di bawah ini:
 
@@ -76,13 +76,13 @@ while (!exit) {
 
 Dengan cara ini, JavaScript akan terus meminta input hingga pengguna mengetik `/bye`:
 
+![Image from PDF page 52](images/page_52_img_0_X13.jpg)
+
 Kami akan meminta lebih banyak input di bab-bab mendatang, sehingga memiliki modul `prompts` akan sangat berguna.
 
 ## Ringkasan
 
 Kode untuk bab ini tersedia di folder `05_Enabling_User_Input` dari kode sumber buku.
-
-![Image from PDF page 52](images/page_52_img_0_X13.jpg)
 
 Dalam bab ini, Anda telah menambahkan paket `prompts` untuk menangkap input pengguna dan membuat aplikasi lebih interaktif.
 
