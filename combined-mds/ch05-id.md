@@ -1,4 +1,4 @@
-# BAB 5: MENGENABKAN INPUT PENGGUNA DENGAN PROMPT
+# BAB 5: SEDIAKAN INPUT PENGGUNA DENGAN PROMPT
 
 Sejauh ini, Anda telah menanyakan LLM dengan menulis pertanyaan dalam konstanta `question`.
 
